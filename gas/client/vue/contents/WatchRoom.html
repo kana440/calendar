@@ -1,0 +1,251 @@
+<template id="watch-room">
+  <v-container>
+    <v-stepper v-model="e1" vertical>
+        <v-stepper-step :complete="e1 > 1" step="1">
+          {{mySelectedEvent}}
+        </v-stepper-step>
+
+      <v-stepper-items>
+        <!-- 会議室を選ぶ -->
+        <v-stepper-content step="1">
+          <v-data-table :headers="headers" :items="events" class="elevation-1" :loading="loading" v-model="selectedEvent" :items-per-page="-1">
+            <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
+            <template #item="{ item, select }">
+              <tr :active="select" @click="selectEvent">
+                <td>{{ item.time }}</td>
+                <td>{{ item.summary }}</td>
+                <td>{{ item.location }}</td>
+                <td>
+                  <v-icon>alarm</v-icon>
+                </td>
+              </tr>
+            </template>
+            <template #no-data>
+              <span v-if="loading">
+                ロード中
+              </span>
+              <v-alert v-else :value="true" color="info" icon="priority_high">
+                予定はありません
+              </v-alert>
+            </template>
+          </v-data-table>
+        </v-stepper-content>
+
+        <v-stepper-step :complete="e1 > 2" step="2">会議室を選ぶ</v-stepper-step>
+        <v-stepper-content step="2">
+
+
+          <v-data-table :headers="headers2" :items="events2" class="elevation-1" show-select item-key="roomId" :loading="loading" v-model="selectedRooms">
+            <template v-slot:headers="{all, indeterminate, headers}">
+              <tr>
+                <th class="text-xs-left px-2" width="10">
+                  <v-checkbox :input-value="all" :indeterminate="indeterminate" primary hide-details @click.stop="toggleAll"></v-checkbox>
+                </th>
+                <th v-for="header in headers" :key="header.text" class="text-xs-left px-2" :width="header.width">
+                  {{ header.text }}
+                </th>
+              </tr>
+            </template>
+            <template #items="props">
+              <tr :active="props.selected" @click="props.selected = !props.selected">
+                <td class="text-xs-left px-2">
+                  <v-checkbox :input-value="props.selected" primary hide-details></v-checkbox>
+                </td>
+                <td class="text-xs-left px-2">{{ props.item.roomName }}</td>
+                <template v-if="props.item.status === 'busy'">
+                  <td class="text-xs-left px-2">{{ props.item.summary }}</td>
+                  <td class="text-xs-left px-2">{{ props.item.organizer }}</td>
+                  <td class="text-xs-left px-2">{{ props.item.numAttendees }}</td>
+                </template>
+                <template v-if="props.item.status === 'free'">
+                  <td class="px-2">
+                    <v-btn color="primary" @click.stop="">いますぐ取得</v-btn>
+                  </td>
+                  <td></td>
+                  <td></td>
+                </template>
+
+              </tr>
+            </template>
+            <template #no-data>
+              <span v-if="loading">
+                ロード中
+              </span>
+              <v-alert v-else :value="true" color="info" icon="priority_high">
+                予定はありません
+              </v-alert>
+            </template>
+          </v-data-table>
+          <v-btn @click='back'>戻る</v-btn>
+          <v-btn @click='register'>ウォッチ登録</v-btn>
+
+
+        </v-stepper-content>
+        <v-stepper-content step="3">
+
+        </v-stepper-content>
+      </v-stepper-items>
+    </v-stepper>
+  </v-container>
+</template>
+
+<script>
+const WatchRoom = {
+  template: '#watch-room',
+  computed: {
+    events() {
+      const selectedDate = this.$store.state.selectedDate
+      const eventsSelectedDate = this.$store.state.myEvents.find(
+        day => {
+          console.log('equal:', equalDate(day.date, selectedDate))
+          return equalDate(day.date, selectedDate)
+        }
+
+      )
+      console.log('eventsSelectedDate:', eventsSelectedDate)
+
+      if(!eventsSelectedDate) {
+        return []
+      }
+
+      if (eventsSelectedDate.response === 'has events') {
+        return eventsSelectedDate.items.map( item => {
+          // 変換を指定
+
+          const time = String(item.startTime.getHours()).padStart(2,"0")
+           + ":" + String(item.startTime.getMinutes()).padStart(2,"0")
+           + "-" + String(item.endTime.getHours()).padStart(2,"0")
+           + ":" + String(item.endTime.getMinutes()).padStart(2,"0")
+
+          return {
+            eventId: item.eventId,
+            time: time,
+            summary: item.summary,
+            location: item.location,
+            monitored: true,
+          }
+        })
+      }
+    },
+    mySelectedEvent(){
+      if ( this.e1 === 2 ) {
+        return '2019/8/8 12:00-12:30 とても大変な予定'
+      }
+        return '予定を選ぶ'
+    }
+  },
+  data() {
+    return {
+      e1: 0,
+      pagination: {
+        rowsPerPage: -1,
+      },
+      selectedRooms: [],
+      selectedEvent: [1],
+      loading: false,
+
+      headers: [{
+          text: '時間',
+          value: 'time',
+          align: 'left',
+          sortable: false,
+          width: '60'
+        },
+        {
+          text: '予定名',
+          value: 'summary',
+          align: 'left',
+          sortable: false
+        },
+        {
+          text: '場所',
+          value: 'location',
+          align: 'left',
+          sortable: false
+        },
+        {
+          text: 'ウォッチ',
+          value: 'location',
+          align: 'center',
+          sortable: false,
+          width: '60'
+        },
+      ],
+
+      headers2: [{
+          text: '部屋',
+          value: 'roomName',
+          align: 'left',
+          sortable: false,
+          width: '60'
+        },
+        {
+          text: '先約名',
+          value: 'summary',
+          align: 'left',
+          sortable: false,
+        },
+        {
+          text: '先約者',
+          value: 'organizer',
+          align: 'left',
+          sortable: false,
+        },
+        {
+          text: '人数',
+          value: 'numAttendees',
+          align: 'center',
+          sortable: false,
+          width: '60'
+        },
+      ],
+
+
+      events2: [{
+          roomId: '001',
+          roomName: '17C1',
+          status: 'busy',
+          summary: '先約名2',
+          organizer: 'yoshio.kanamorieee',
+          numAttendees: 7,
+        },
+        {
+          roomId: '002',
+          roomName: '17C2',
+          status: 'busy',
+          summary: '先約名1',
+          organizer: 'kanamoridayo---',
+          numAttendees: 6,
+        },
+        {
+          roomId: '003',
+          roomName: '17C3',
+          status: 'free',
+        },
+        {
+          roomId: '004',
+          roomName: '17C4',
+          status: 'no authority',
+        },
+      ],
+
+    }
+  },
+  methods: {
+    toggleAll() {
+      if (this.selectedRooms.length) this.selectedRooms = []
+      else this.selectedRooms = this.events2.slice()
+    },
+    selectEvent(){
+      this.e1 = 2
+    },
+    back() {
+      console.log('back')
+
+    },
+    register() {
+      console.log('register')
+    }
+  },
+}
+</script>

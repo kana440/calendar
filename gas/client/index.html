@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='UTF-8'>
+    <title>Vue app</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+  </head>
+  <body>
+    <div id="vue-app"></div>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuex/dist/vuex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-router/dist/vue-router.min.js"></script>
+
+    <?!=include('client/vuex/state');?>
+    <?!=include('client/vuex/mockState');?>
+    <?!=include('client/vuex/mutations');?>
+    <?!=include('client/vuex/actions');?>
+    <?!=include('client/vuex/getters');?>
+    <?!=include('client/vuex/store');?>
+
+    <?!=include('client/vue/contents/WatchRoom');?>
+    <?!=include('client/vue/contents/RoomList');?>
+    <?!=include('client/vue/contents/Transfer');?>
+    <?!=include('client/vue/contents/WatchList');?>
+    <?!=include('client/vue/contents/UserSettings');?>
+
+    <?!=include('client/vue/pages/TheModal');?>
+    <?!=include('client/vue/pages/TheLoader');?>
+    <?!=include('client/vue/pages/TheFooter');?>
+    <?!=include('client/vue/pages/TheNavDrawer');?>
+    <?!=include('client/vue/pages/TheToolBar');?>
+
+    <?!=include('client/vue-router/router');?>
+    <?!=include('client/vue/App');?>
+    <?!=include('client/mainjs');?>
+
+  </body>
+</html>

@@ -1,0 +1,106 @@
+<!-- The Tool Bar-->
+<template id='the-tool-bar'>
+  <v-app-bar app color="blue darken-3" dark :clipped-left="$vuetify.breakpoint.mdAndUp" fixed>
+    <v-toolbar-title style="width: 300px" class="ml-0 pl-3">
+      <v-app-bar-nav-icon @click.stop="switchDrawer"></v-app-bar-nav-icon>
+      <span>会議室取得ツール</span>
+    </v-toolbar-title>
+
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <v-btn icon v-on="on" @click="selectPreviousDay">
+          <v-icon>keyboard_arrow_left</v-icon>
+        </v-btn>
+      </template>
+      <span>前の日</span>
+    </v-tooltip>
+
+    <v-menu v-model="isDatePickerDisplayed"
+     :close-on-content-click="false"
+     :nudge-right="40"
+     transition="scale-transition"
+     offset-y full-width min-width="290px">
+      <template v-slot:activator="{ on }">
+        <v-btn outlined v-on="on">{{dateString}}</v-btn>
+      </template>
+      <v-date-picker
+        :value="selectedDate"
+        @input="updateSelectedDate($event)"
+        locale="jp-ja"
+        :day-format="date => new Date(date).getDate()"
+      ></v-date-picker>
+    </v-menu>
+
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on }">
+        <v-btn icon v-on="on" @click="selectNextDay">
+          <v-icon>keyboard_arrow_right</v-icon>
+        </v-btn>
+      </template>
+      <span>次の日</span>
+    </v-tooltip>
+
+    <v-spacer></v-spacer>
+  </v-app-bar>
+
+</template>
+
+<script>
+  const TheToolBar = {
+    template: '#the-tool-bar',
+    data() {
+      return {
+        isDatePickerDisplayed: false
+      }
+    },
+    computed: {
+      drawer() {
+        return this.$store.state.drawer
+      },
+      selectedDate() {
+        // selectedDataはDate型
+        // これをUTCのString("YYYY-MM-DD")にかえる
+        if (this.$store.state.selectedDate != undefined) {
+          const dateUtc = new Date(this.$store.state.selectedDate.setHours(9))
+          return dateUtc.toISOString().substr(0, 10)
+        }
+        return new Date().toISOString().substr(0, 10)
+      },
+      dateString() {
+        const year = this.$store.state.selectedDate.getFullYear()
+        const month = this.$store.state.selectedDate.getMonth() + 1
+        const date = this.$store.state.selectedDate.getDate()
+        const day = this.$store.state.selectedDate.getDay()
+        return `${year}/${month}/${date} (${['日','月','火','水','木','金','土'][day]})`
+      }
+    },
+    methods: {
+      switchDrawer() {
+        this.$store.commit('switchDrawer');
+      },
+      updateSelectedDate(value) {
+        this.isDatePickerDisplayed = false
+        // DatePickerはUTCのString("YYYY-MM-DD")のため、
+        // Date型を取得する
+        const date = new Date(value)
+        date.setHours(0)
+        this.$store.dispatch('updateSelectedDate', date)
+      },
+      selectToday() {
+        const date = new Date(new Date().toLocaleString())
+        date.setHours(0)
+        this.$store.dispatch('updateSelectedDate', date)
+      },
+      selectNextDay() {
+        const date = new Date(this.$store.state.selectedDate)
+        date.setDate(date.getDate() + 1)
+        this.$store.dispatch('updateSelectedDate', date)
+      },
+      selectPreviousDay() {
+        const date = new Date(this.$store.state.selectedDate)
+        date.setDate(date.getDate() - 1)
+        this.$store.dispatch('updateSelectedDate', date)
+      },
+    }
+  }
+</script>

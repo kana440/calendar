@@ -1,0 +1,32 @@
+<template id="the-modal">
+  <v-layout row justify-center>
+    <v-dialog v-model="dialog" persistent max-width="400px">
+      <user-settings></user-settings>
+    </v-dialog>
+  </v-layout>
+</template>
+
+<script>
+const TheModal = {
+  template: '#the-modal',
+  components: {
+    UserSettings: UserSettings,
+  },
+  computed: {
+    loading() {
+      return this.$store.state.isLoading
+    },
+    dialog() {
+      return this.$store.state.newUser
+    },
+  },
+  methods: {
+    save() {
+      this.$store.commit('closeDialog')
+    },
+    cancel() {
+      this.$store.commit('closeDialog')
+    },
+  },
+}
+</script>

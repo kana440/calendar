@@ -1,0 +1,11 @@
+<script>
+const getters = {
+  validRooms: state => {
+    return state.rooms.filter(room => {
+    return room.floor === state.user.floor
+    && room.validFrom <= state.selectedDate
+    && room.validTo >= state.selectedDate
+    })
+  }
+}
+</script>

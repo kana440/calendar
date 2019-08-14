@@ -1,0 +1,26 @@
+<template id="app">
+  <v-app>
+    <the-nav-drawer></the-nav-drawer>
+    <the-tool-bar></the-tool-bar>
+    <v-content>
+      <router-view></router-view>
+    </v-content>
+
+    <the-footer></the-footer>
+    <the-modal></the-modal>
+    <the-loader></the-loader>
+  </v-app>
+</template>
+
+<script>
+  const App = {
+    components: {
+      TheToolBar: TheToolBar,
+      TheFooter: TheFooter,
+      TheNavDrawer: TheNavDrawer,
+      TheModal: TheModal,
+      TheLoader: TheLoader,
+    },
+    template: '#app'
+  }
+</script>

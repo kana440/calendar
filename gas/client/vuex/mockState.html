@@ -1,0 +1,133 @@
+<script>
+const mockState = {
+  // ユーザ情報、onload時に読込
+  user: {
+    email: 'yoshio.kanamori@gmail.com',
+    floor: '17F-18F',
+  },
+
+  // 会議室情報、onload時に読込
+  // ユーザのfloorと連動、将来的にはカスタム floor=customも追加
+  // 自身が(新規で)使う会議室はfloor=user.floorかcustom
+  rooms: [
+    {
+      email: '17C1@gmail.com',
+      name: '17C1',
+      capacity: 4,
+      startDate: new Date('1900/1/1'),
+      endDate: new Date('2099/12/31'),
+      floor: '17F-18F',
+    },
+    {
+      email: '17C2@gmail.com',
+      name: '17C2',
+      capacity: 6,
+      startDate: new Date('1900/1/1'),
+      endDate: new Date('2099/12/31'),
+      floor: '17F-18F',
+    },
+    {
+      email: '17C2@gmail.com',
+      name: '17C2',
+      capacity: 6,
+      startDate: new Date('1900/1/1'),
+      endDate: new Date('2099/12/31'),
+      floor: 'custom',
+    },
+  ],
+
+  // 自身の予定、日程変更時に読込
+  // 日程ごとに結果を保持
+  myEvents: [
+    {
+      date: new Date('2019/7/30'),
+      status: 'has events',
+      items: [
+        {
+          eventId: '001',
+          startTime: new Date('2019/7/30 10:00'),
+          endTime: new Date('2019/7/30 11:00'),
+          summary: '自分の予定１',
+          location: 'locationtext', // Optional
+          description: 'お疲れです', // Optional
+          organizer: 'organizer@xxx.com', // Optional
+          visibility: 'private', // Optional,'private',undefined('default'),'public','confidential'
+          htmlLink: 'http://hoge.hoge',
+          attendees: [
+
+          ],
+        },
+        {
+          eventId: '002',
+          startTime: new Date('2019/7/30 12:00'),
+          endTime: new Date('2019/7/30 13:00'),
+          summary: '自分の予定2',
+          location: 'locationtext', // Optional
+          description: 'お疲れです', // Optional
+          organizer: 'organizer@xxx.com', // Optional
+          visibility: 'private', // Optional,'private',undefined('default'),'public','confidential'
+          htmlLink: 'http://hoge.hoge',
+          attendees: [
+
+          ],
+        },
+      ],
+    },
+    {
+      date: new Date('2019/7/31'),
+      status: 'no events',
+      items: null,
+    },
+  ],
+
+  watchList: [
+
+  ],
+
+  roomEvents: [
+    {
+      date: new Date('2019/7/30'),
+      email: 'y.k.kanamori@gmail.com',
+      status: 'has events',
+      items: [
+        {
+          eventId: '001',
+          startTime: new Date('2019/7/30 9:00'),
+          endTime: new Date('2019/7/30 9:30'),
+          summary: '予定名１',
+          location: null, // Optional
+          description: null, // Optional
+          organizer: null, // Optional
+          visibility: 'default', // Optional,'private',undefined('default'),'public','confidential'
+          htmlLink: 'http:hoge',
+          attendees: [
+            { email: 'attendeex1' }, { email: 'attendees2' },
+          ],
+        },
+        {
+          eventId: '002',
+          startTime: new Date('2019/7/30 10:10'),
+          endTime: new Date('2019/7/30 10:30'),
+          summary: '予定名2',
+          location: null, // Optional
+          description: null, // Optional
+          organizer: null, // Optional
+          visibility: 'default', // Optional,'private',undefined('default'),'public','confidential'
+          htmlLink: 'http:hoge',
+          attendees: [
+            { email: 'attendeex1' }, { email: 'attendees2' },
+          ],
+        },
+      ],
+    },
+  ],
+  //dialogの設定内容
+  isDialog: true,
+
+  // 日付ごとの予定の読込履歴
+  selectedDate: new Date('2019/7/30'),
+  isLoading: false,
+  drawer: true,
+
+}
+</script>

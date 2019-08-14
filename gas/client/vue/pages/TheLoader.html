@@ -1,0 +1,16 @@
+<template id='the-loader'>
+  <v-overlay :value="isLoading">
+  <v-progress-circular indeterminate size="64"></v-progress-circular>
+  </v-overlay>
+</template>
+
+<script>
+const TheLoader = {
+  template: '#the-loader',
+  computed: {
+    isLoading() {
+      return this.$store.state.initializing
+    }
+  }
+}
+</script>

@@ -1,0 +1,75 @@
+<template id="the-nav-drawer">
+  <v-navigation-drawer
+    app
+    clipped
+    :value="drawer"
+    mobile-break-point="960"
+  >
+  <v-list>
+      <v-subheader>{{user.email}}</v-subheader>
+      <template v-for="item in items">
+        <v-list-item @click="navigateTo(item)" :key="item.text"
+        :class="selectedClass(item.link)">
+          <v-list-item-action>
+            <v-icon :color="selectedIconClass(item.link)">{{ item.icon }}</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ item.text }}
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </template>
+  </v-list>
+  </v-navigation-drawer>
+</template>
+
+<script>
+
+const TheNavDrawer = {
+  template: '#the-nav-drawer',
+  computed: {
+    drawer() {
+      return this.$store.state.drawer
+    },
+    user() {
+      return this.$store.state.user
+    }
+  },
+  methods: {
+    navigateTo(item) {
+      if(item.link) {
+        this.$router.push(item.link)
+      } else {
+        this.$store.commit(item.method, item.payload)
+      }
+    },
+    selectedClass(loc) {
+      if (loc === this.$route.path ) {
+        return 'blue lighten-5 blue--text text--darken-3'
+      } else {
+        return ''
+      }
+    },
+    selectedIconClass(loc) {
+      if (loc == this.$route.path ) {
+        return 'blue darken-3 '
+      } else {
+        return ''
+      }
+    }
+  },
+
+  data: () => ({
+      items: [
+        { icon: 'event', text: '会議室をウォッチする', link: '/watchRoom' },
+        { icon: 'meeting_room', text: '空き会議室を探す' , link: '/roomList' },
+        { icon: 'reply', text: '取得した会議室を譲る'  ,link: '/transfer' },
+        { icon: 'view_list', text: 'ウォッチ中の予定', link: '/watchList' },
+        { icon: 'settings', text: '設定', method: 'updateNewUser', payload:true },
+//        { icon: 'settings', text: '設定', link: '/settings'  },
+      ]
+  }),
+}
+
+</script>

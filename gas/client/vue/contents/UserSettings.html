@@ -1,0 +1,63 @@
+<template id="user-settings">
+      <v-card>
+        <v-card-title>
+          <span class="headline">会議室取得ツールへようこそ</span>
+        </v-card-title>
+        <v-card-text>
+          はじめに利用する会議室を選んでください。<br>
+          登録後も「メニュー＞設定」から変更できます。<br>
+          <v-layout>
+            <v-flex xs6>
+              <v-card>
+                <v-container fluid>
+                  <p>会議室フロア</p>
+                  <v-radio-group v-model="radios" :mandatory="true" >
+                    <v-radio
+                      v-for="floor in floorList"
+                      :label="floor"
+                      :value="floor"
+                    ></v-radio>
+                  </v-radio-group>
+                </v-container>
+              </v-card>
+            </v-flex>
+          </v-layout>
+
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="save">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+</template>
+
+<script>
+const UserSettings = {
+  template: '#user-settings',
+  data() {
+    return {
+      radios: '',
+    }
+  },
+  computed: {
+    floorList() {
+      const rooms = this.$store.state.rooms
+      return rooms.map(room => room.floor).filter((value, index, self) => {
+        return self.indexOf(value) === index
+      })
+    },
+  },
+  methods: {
+    async getUserSettings() {
+      const c = await runGas('getUserSettings')
+      console.log(c)
+    },
+    save() {
+      this.$store.dispatch('updateUserSettings', {
+        email: this.$store.state.user.email,
+        floor: this.radios
+      })
+    },
+  }
+}
+</script>

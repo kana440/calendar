@@ -1,0 +1,89 @@
+<template id="room-list">
+  <v-container>
+    <table>
+      <thead>
+        <tr dark black>
+          <th>会議室名</th>
+          <th
+            colspan="2"
+           v-for="time in times"
+          >{{time}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="room in rooms">
+          <td>{{room.name}}</td>
+          <td class="cell" v-for="status in room.status">{{status}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </v-container>
+</template>
+
+<script>
+const RoomList = {
+  template: '#room-list',
+  data(){
+    return {
+      times: [9,10,11,12,13,14,15,16,17,18,19,20],
+/*      rooms: [
+        {
+          name: '17C1',
+          status: ['',true,true,true,true,true,true,true,true,true,true,true,
+          true,true,true,true,true,true,true,true,true,true,true,''],
+        },
+        {
+          name: '17C2',
+          status: ['',true,true,true,true,true,true,true,true,true,true,true,
+          true,true,true,true,true,true,true,true,true,true,true,'',],
+        },
+      ]
+      */
+    }
+  },
+  computed: {
+    rooms(){
+      return this.$store.getters.validRooms
+    },
+    isBusy(){
+      return [Object.keys(this),true,true,true,true,true,true,true,true,true,true,true,true,]
+    }
+  }
+}
+</script>
+
+<style scoped>
+.checked {
+  background-color: #eeffff;
+  color: #3884ff;
+}
+
+.occupied {
+  background-color: lightgray;
+  color: dimgray;
+}
+
+.dashed {
+  background-color: #ffdada;
+  color: red;
+}
+
+td.cell {
+  min-width: 2rem;
+  max-width: 2rem;
+}
+
+td.cell:nth-child(odd){
+  border-left: 1px #dfdfdf solid;
+  border-right: 1px #efefef dashed;
+}
+
+td.cell:nth-child(3) {
+  border-left: 1px #222222 solid;
+}
+
+td.cell.data:nth-child(25) {
+  border-left: 1px #222222 solid;
+  border-right: 0px;
+}
+</style>

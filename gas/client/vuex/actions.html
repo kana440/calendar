@@ -1,0 +1,52 @@
+<script>
+const actions = {
+  updateSelectedDate({ commit, state, getters }, payload) {
+
+    runGas('apiGetCalendarEvents',{
+      calendarId: state.user.email,
+      dateString: payload.toLocaleDateString(),
+    }).then(result => {
+     result.date = new Date(result.date)
+     result.items.forEach(item=>{
+      item.startTime = new Date(item.startTime)
+      item.endTime = new Date(item.endTime)
+    })
+    commit('updateCalendarEvents', result)
+  })
+  getters.validRooms.forEach(room => {
+    runGas('apiGetCalendarEvents',{
+      calendarId: room.calendarId,
+      dateString: payload.toLocaleDateString(),
+    }).then(result => {
+      result.date = new Date(result.date)
+      result.items.forEach(item=>{
+       item.startTime = new Date(item.startTime)
+       item.endTime = new Date(item.endTime)
+     })
+     console.log(result)
+     commit('updateRoomEvents', result)
+    })
+  })
+
+    // selectedDateを更新する
+    commit('updateSelectedDate', payload)
+  },
+
+  async updateUserSettings({commit, state}, payload){
+    commit('updateNewUser', false)
+    commit('updateInitializing', true)
+    await runGas('setUserSettings', payload)
+    commit('updateUserSettings', payload)
+    commit('updateInitializing', false)
+  },
+
+  async updateWatchList({commit, state},payload){
+    results = await runGas('getWatchList')
+    commit('updateWatchList',results)
+  },
+
+  onEventSelected({ commit }, { event }) {
+    commit('selectEvent', { event })
+  },
+}
+</script>

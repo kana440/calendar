@@ -1,0 +1,58 @@
+<script>
+// mutations
+const mutations = {
+  updateRooms(state, payload){
+    state.rooms = payload;
+  },
+  updateUserSettings(state, payload){
+    state.user = payload
+  },
+  updateNewUser(state, payload){
+    state.newUser = payload
+  },
+  updateInitializing(state, payload){
+    state.initializing = payload
+  },
+  updateCalendarEvents(state, payload) {
+    const idx = state.myEvents.findIndex(query=>equalDate(query.date, payload.date))
+    if(idx === -1 ) {
+      state.myEvents.push(payload)
+    } else {
+      state.myEvents[idx] = payload
+    }
+  },
+  updateRoomEvents(state, payload) {
+    const idx = state.roomEvents.findIndex(query=>{
+      return equalDate(query.date, payload.date) && query.calendarId === payload.calendarId
+    })
+    if(idx === -1 ) {
+      state.roomEvents.push(payload)
+    } else {
+      state.roomEvents[idx] = payload
+    }
+  },
+  switchDrawer(state, payload) {
+    state.drawer = !state.drawer
+  },
+  updateSelectedDate(state, payload) {
+    state.selectedDate = payload
+  },
+  loadingOn(state, payload) {
+    state.isLoading = true,
+    state.loadingText = payload
+  },
+  pushHistory(state, payload) {
+    state.history.push(payload)
+  },
+  loadingOff(state) {
+    state.isLoading = false
+    state.loadingText = ''
+  },
+  selectEvent(state, payload) {
+    state.selectedEvent = payload.event
+  },
+  closeDialog(state) {
+    state.isDialog = false
+  },
+}
+</script>

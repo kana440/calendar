@@ -1,0 +1,60 @@
+<script>
+function runGas(func,payload) {
+  return new Promise((resolve, reject) =>
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)
+      [func](payload)
+  )
+}
+
+function equalDate(date1, date2) {
+  return date1.getFullYear() === date2.getFullYear()
+  && date1.getMonth() === date2.getMonth()
+  && date1.getDate() === date2.getDate()
+}
+
+
+const vue = new Vue({
+  store,
+  router,
+  vuetify: new Vuetify(),
+  components: {
+    App
+  },
+  render: h => h(App)
+  }).$mount('#vue-app')
+
+window.addEventListener('load', async () => {
+})
+
+window.addEventListener('load', async () => {
+  // user Setting を update、isInitializing を falseに
+  Promise.all([
+    runGas('getRooms'),
+    runGas('getUserSettings'),
+  ]).then( async results => {
+    const rooms = results[0]
+    rooms.forEach(room => {
+      room.validFrom = new Date(room.validFrom)
+      room.validTo = new Date(room.validTo)
+    })
+    const userSettings = results[1]
+
+    store.commit('updateRooms', rooms)
+    store.commit('updateUserSettings', userSettings)
+
+    store.dispatch('updateWatchList')
+
+    if(userSettings.floor
+     && rooms.some(room => room.floor === userSettings.floor)) {
+      await store.dispatch('updateCalendarEvents', store.state.selectedDate)
+      store.commit('updateInitializing', false)
+    } else {
+      store.commit('updateNewUser', true)
+      store.commit('updateInitializing', false)
+    }
+  })
+})
+
+</script>

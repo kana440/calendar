@@ -1,0 +1,81 @@
+<script>
+  const router = new VueRouter({
+    routes: [
+      {
+        path: '/watchRoom',
+        name: 'watch rooms',
+        component: WatchRoom,
+      },
+      {
+        path: '/roomList',
+        name: 'room list',
+        component: RoomList,
+      },
+      {
+        path: '/transfer',
+        name: 'transfer',
+        component: Transfer,
+      },
+      {
+        path: '/watchList',
+        name: 'watch list',
+        component: WatchList,
+      },
+      {
+        path: '/settings',
+        name: 'user settings',
+        component: UserSettings,
+      },
+      {
+        path: '/',
+        name: 'root',
+        redirect: '/watchRoom'
+      },
+
+/*      {
+        path: '/003',
+        name: 'create event and transfer room',
+        component: page003CreateEventAndTransfer,
+      },
+      {
+        path: '/004',
+        name: 'transfer room',
+        component: page004TransferRoom,
+      },
+      {
+        path: '/005',
+        name: 'watch list',
+        component: page005WatchList,
+      },
+      {
+        path: '/006',
+        name: 'settings',
+        component: page006Settings,
+      },
+      {
+        path: '/011',
+        name: 'add room',
+        component: page011AddRoom,
+      },
+*/    ],
+  })
+
+  const sync = router => {
+    if (!window.google) {
+      return
+    }
+
+    window.google.script.url.getLocation(location => {
+      const path = location.hash
+      const query = location.parameter
+      router.replace({ path, query })
+    })
+
+    router.afterEach(route => {
+      window.google.script.history.replace(null, route.query, route.path)
+    })
+  }
+
+  sync(router)
+
+</script>
