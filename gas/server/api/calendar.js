@@ -162,10 +162,21 @@ function addGuest(payload) {
 
 // 汎用的に呼ばれるサブルーチン・コールバック関数等を定義
 function eventGetter(item) {
+  var startTime, endTime
+  if(item.start.dateTime) {
+    startTime = new Date(item.start.dateTime)
+    endTime = new Date(item.end.dateTime)
+  } else {
+    startTime = new Date(item.start.date)
+    endTime = new Date(item.end.date)
+    startTime.setHours(0)
+    endTime.setHours(0)
+  }
+
   return {
     eventId: item.id,
-    startTime: new Date(item.start.dateTime),
-    endTime: new Date(item.end.dateTime),
+    startTime: startTime,
+    endTime: endTime,
     summary: item.summary == null ? constants.SUMMARY_DEFAULT_JA : item.summary,
     location: item.location,//Optional
     description: item.description,//Optional

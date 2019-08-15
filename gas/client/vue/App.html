@@ -21,6 +21,9 @@
       TheModal: TheModal,
       TheLoader: TheLoader,
     },
-    template: '#app'
+    template: '#app',
+    mounted () {
+      this.$store.dispatch('initialize')
+    }
   }
 </script>

@@ -1,38 +1,88 @@
 <script>
-const actions = {
-  updateSelectedDate({ commit, state, getters }, payload) {
-
-    runGas('apiGetCalendarEvents',{
-      calendarId: state.user.email,
-      dateString: payload.toLocaleDateString(),
-    }).then(result => {
-     result.date = new Date(result.date)
-     result.items.forEach(item=>{
-      item.startTime = new Date(item.startTime)
-      item.endTime = new Date(item.endTime)
+const api = {
+  async getRooms(){
+    const result = await this.runGas('getRooms')
+    result.forEach(item => {
+      item.validFrom = new Date(item.validFrom)
+      item.validTo = new Date(item.validTo)
     })
-    commit('updateCalendarEvents', result)
-  })
-  getters.validRooms.forEach(room => {
-    runGas('apiGetCalendarEvents',{
-      calendarId: room.calendarId,
-      dateString: payload.toLocaleDateString(),
-    }).then(result => {
-      result.date = new Date(result.date)
-      result.items.forEach(item=>{
-       item.startTime = new Date(item.startTime)
-       item.endTime = new Date(item.endTime)
-     })
-     console.log(result)
-     commit('updateRoomEvents', result)
-    })
-  })
-
-    // selectedDateを更新する
-    commit('updateSelectedDate', payload)
+    return result
   },
 
-  async updateUserSettings({commit, state}, payload){
+  async getUserSettings(){
+    const result = await this.runGas('getUserSettings')
+    return result
+  },
+
+  async getCalendarEvents({calendarId, selectedDate}){
+    const result = await this.runGas('apiGetCalendarEvents',{
+      calendarId: calendarId,
+      dateString: selectedDate.toLocaleDateString(),
+    })
+    result.date = new Date(result.date)
+    result.items.forEach(item=>{
+       item.startTime = new Date(item.startTime)
+       item.endTime = new Date(item.endTime)
+    })
+    return result
+  },
+
+  async runGas(func,payload) {
+    return await new Promise((resolve, reject) =>
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        [func](payload)
+    )
+  }
+}
+
+const actions = {
+  async initialize({commit, state, dispatch, getters}){
+    const [rooms, userSettings] = await Promise.all([
+      api.getRooms(),
+      api.getUserSettings(),
+    ])
+    commit('updateRooms', rooms)
+    commit('updateUserSettings', userSettings)
+    dispatch('getCalendarEvents')
+    dispatch('getRoomEvents')
+
+    commit('updateInitializing', false)
+
+    // フロア情報が不明な時はダイアログを表示
+    if(!getters.validRooms.length){
+      commit('updateNewUser', true)
+    }
+  },
+
+  async getCalendarEvents({ commit, state }) {
+    const result = await api.getCalendarEvents({
+      calendarId: state.user.email,
+      selectedDate: state.selectedDate,
+    })
+    commit('updateCalendarEvents', result)
+  },
+
+  async getRoomEvents({commit, state, getters}) {
+    const results = await Promise.all(
+      getters.validRooms.map(room => {
+        return api.getCalendarEvents({
+          calendarId: room.calendarId,
+          selectedDate: state.selectedDate,
+        })
+      })
+    )
+    results.forEach(result=>commit('updateRoomEvents', result))
+  },
+
+  updateSelectedDate({ commit, dispatch }, payload) {
+    commit('updateSelectedDate', payload)
+    dispatch('getCalendarEvents')
+    dispatch('getRoomEvents')
+  },
+
+  async updateUserSettings({ commit, state }, payload){
     commit('updateNewUser', false)
     commit('updateInitializing', true)
     await runGas('setUserSettings', payload)
@@ -40,7 +90,7 @@ const actions = {
     commit('updateInitializing', false)
   },
 
-  async updateWatchList({commit, state},payload){
+  async updateWatchList({ commit, state },payload){
     results = await runGas('getWatchList')
     commit('updateWatchList',results)
   },
