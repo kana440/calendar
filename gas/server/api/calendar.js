@@ -180,7 +180,7 @@ function eventGetter(item) {
     summary: item.summary == null ? constants.SUMMARY_DEFAULT_JA : item.summary,
     location: item.location,//Optional
     description: item.description,//Optional
-    organizer: item.organizer.email,//Optional
+    organizer: item.organizer,//Optional
     visibility : item.visibility,//Optional,'private',undefined('default'),'public','confidential'
     htmlLink: item.htmlLink,
     attendees: item.attendees
