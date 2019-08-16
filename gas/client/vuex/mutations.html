@@ -7,6 +7,11 @@ const mutations = {
   updateUserSettings(state, payload){
     state.user = payload
   },
+  patchUserSettings(state, payload){
+    for(let i in payload){
+      state.user[i] = payload[i]
+    }
+  },
   updateNewUser(state, payload){
     state.newUser = payload
   },

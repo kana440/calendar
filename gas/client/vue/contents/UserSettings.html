@@ -11,11 +11,14 @@
               <v-card>
                 <v-container fluid>
                   <p>会議室フロア</p>
-                  <v-radio-group v-model="radios" :mandatory="true" >
+                  <v-radio-group
+                    v-model="floor"
+                    :mandatory="true"
+                  >
                     <v-radio
-                      v-for="floor in floorList"
-                      :label="floor"
-                      :value="floor"
+                      v-for="item in floorList"
+                      :label="item"
+                      :value="item"
                     ></v-radio>
                   </v-radio-group>
                 </v-container>
@@ -26,7 +29,11 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="save">Save</v-btn>
+          <v-btn
+            color="blue darken-1" text
+            @click="save"
+            :disabled="!this.$store.getters.validRooms.length"
+          >Save</v-btn>
         </v-card-actions>
       </v-card>
 </template>
@@ -36,27 +43,33 @@ const UserSettings = {
   template: '#user-settings',
   data() {
     return {
-      radios: '',
+      floorInput: '',
     }
   },
   computed: {
+    floor:{
+      get(){
+        return this.$store.state.user.floor
+      },
+      set(value){
+        this.floorInput = value
+      }
+    },
     floorList() {
-      const rooms = this.$store.state.rooms
-      return rooms.map(room => room.floor).filter((value, index, self) => {
-        return self.indexOf(value) === index
-      })
+      return this.$store.getters.floors
     },
   },
   methods: {
     async getUserSettings() {
       const c = await runGas('getUserSettings')
-      console.log(c)
     },
     save() {
-      this.$store.dispatch('updateUserSettings', {
-        email: this.$store.state.user.email,
-        floor: this.radios
+      console.log(this.floorInput)
+      if(this.floorInput)
+      this.$store.commit('patchUserSettings',{
+        floor: this.floorInput
       })
+      this.$store.dispatch('setUserSettings')
     },
   }
 }

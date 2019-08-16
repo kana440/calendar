@@ -26,6 +26,12 @@ const api = {
     })
     return result
   },
+  async setUserSettings({email,floor}){
+    const result = await this.runGas('setUserSettings',{
+      email,
+      floor,
+    })
+  },
 
   async runGas(func,payload) {
     return await new Promise((resolve, reject) =>
@@ -38,7 +44,7 @@ const api = {
 }
 
 const actions = {
-  async initialize({commit, state, dispatch, getters}){
+  async initialize({commit, dispatch, getters}){
     const [rooms, userSettings] = await Promise.all([
       api.getRooms(),
       api.getUserSettings(),
@@ -76,19 +82,19 @@ const actions = {
     results.forEach(result=>commit('updateRoomEvents', result))
   },
 
+  async setUserSettings({ state, commit }){
+    commit('updateNewUser', false)
+    commit('updateInitializing', true)
+    await api.setUserSettings(state.user)
+    commit('updateInitializing', false)
+  },
+
   updateSelectedDate({ commit, dispatch }, payload) {
     commit('updateSelectedDate', payload)
     dispatch('getCalendarEvents')
     dispatch('getRoomEvents')
   },
 
-  async updateUserSettings({ commit, state }, payload){
-    commit('updateNewUser', false)
-    commit('updateInitializing', true)
-    await runGas('setUserSettings', payload)
-    commit('updateUserSettings', payload)
-    commit('updateInitializing', false)
-  },
 
   async updateWatchList({ commit, state },payload){
     results = await runGas('getWatchList')

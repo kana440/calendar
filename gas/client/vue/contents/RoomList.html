@@ -26,19 +26,6 @@ const RoomList = {
   data(){
     return {
       times: [9,10,11,12,13,14,15,16,17,18,19,20],
-/*      rooms: [
-        {
-          name: '17C1',
-          status: ['',true,true,true,true,true,true,true,true,true,true,true,
-          true,true,true,true,true,true,true,true,true,true,true,''],
-        },
-        {
-          name: '17C2',
-          status: ['',true,true,true,true,true,true,true,true,true,true,true,
-          true,true,true,true,true,true,true,true,true,true,true,'',],
-        },
-      ]
-      */
     }
   },
   computed: {
@@ -46,8 +33,12 @@ const RoomList = {
       return this.$store.getters.validRooms
     },
     isBusy(){
-      return [Object.keys(this),true,true,true,true,true,true,true,true,true,true,true,true,]
-    }
+      const room = this.$store.state.roomEvents.find()
+      room.items.filter(item=>
+        !item.attendees || item.attendees.find(attendee=>attendee.email===calendarId).responseStatus !== "declined"
+      )
+      //と、item.organizer.email が自分のもの
+    },
   }
 }
 </script>
