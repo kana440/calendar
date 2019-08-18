@@ -26,11 +26,28 @@ const api = {
     })
     return result
   },
+
   async setUserSettings({email,floor}){
     const result = await this.runGas('setUserSettings',{
       email,
       floor,
     })
+  },
+
+  async setWatchList({
+    subscriber, status, eventId, startTime, endTime, summary, watchRooms
+  }) {
+    const result = await this.runGas('setWatchList',{
+      subscriber,
+      status,
+      eventId,
+      startTimeString: startTime.toLocaleString(),
+      endTimeString: endTime.toLocaleString(),
+      summary,
+      watchRooms,
+    })
+    console.log('api result:',result)
+    return result
   },
 
   async runGas(func,payload) {
@@ -87,6 +104,21 @@ const actions = {
     commit('updateInitializing', true)
     await api.setUserSettings(state.user)
     commit('updateInitializing', false)
+  },
+
+  async setWatchList({state, commit},{
+    event,
+    watchRooms,
+  }){
+    const result = await api.setWatchList({
+      subscriber: state.user.email,
+      status: '01_ウォッチ中',
+      eventId: event.eventId,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      summary: event.summary,
+      watchRooms: watchRooms,
+    })
   },
 
   updateSelectedDate({ commit, dispatch }, payload) {

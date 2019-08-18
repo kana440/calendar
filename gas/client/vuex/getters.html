@@ -12,6 +12,10 @@ const getters = {
       && room.validTo >= state.selectedDate
     })
   },
-
+  calendarEventsSelectedDate(state){
+    return state.myEvents.find(
+      events=>equalDate(events.date, state.selectedDate)
+    )
+  },
 }
 </script>

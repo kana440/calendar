@@ -1,17 +1,24 @@
 <template id="watch-room">
   <v-container>
-    <v-stepper v-model="e1" vertical>
-        <v-stepper-step :complete="e1 > 1" step="1">
-          {{mySelectedEvent}}
-        </v-stepper-step>
-
+    <v-stepper v-model="step" vertical>
+      <v-stepper-step
+        step="1"
+        :complete="step > 1"
+      >
+      {{titleStep1}}
+      </v-stepper-step>
       <v-stepper-items>
-        <!-- 会議室を選ぶ -->
         <v-stepper-content step="1">
-          <v-data-table :headers="headers" :items="events" class="elevation-1" :loading="loading" v-model="selectedEvent" :items-per-page="-1">
+          <v-data-table
+            class="elevation-5"
+            :headers="headers"
+            :items="tableStep1"
+            :loading="loading"
+            :items-per-page="-1"
+          >
             <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
             <template #item="{ item, select }">
-              <tr :active="select" @click="selectEvent">
+              <tr :active="select" @click="selectEvent(item)">
                 <td>{{ item.time }}</td>
                 <td>{{ item.summary }}</td>
                 <td>{{ item.location }}</td>
@@ -31,25 +38,54 @@
           </v-data-table>
         </v-stepper-content>
 
-        <v-stepper-step :complete="e1 > 2" step="2">会議室を選ぶ</v-stepper-step>
+        <v-stepper-step
+          step="2"
+          :complete="step > 2"
+        >会議室を選ぶ
+        </v-stepper-step>
+
         <v-stepper-content step="2">
-
-
-          <v-data-table :headers="headers2" :items="events2" class="elevation-1" show-select item-key="roomId" :loading="loading" v-model="selectedRooms">
-            <template v-slot:headers="{all, indeterminate, headers}">
+          <v-data-table
+            show-select
+            :headers="headers2"
+            :items="tableStep2"
+            class="elevation-5"
+            item-key="roomId"
+            :loading="loading"
+          >
+            <template #headers="{all, indeterminate, headers}">
               <tr>
                 <th class="text-xs-left px-2" width="10">
-                  <v-checkbox :input-value="all" :indeterminate="indeterminate" primary hide-details @click.stop="toggleAll"></v-checkbox>
+                  <v-checkbox
+                    :input-value="all"
+                    :indeterminate="indeterminate"
+                    primary
+                    hide-details
+                    @click.stop="toggleAll"
+                  ></v-checkbox>
                 </th>
-                <th v-for="header in headers" :key="header.text" class="text-xs-left px-2" :width="header.width">
+                <th
+                  v-for="header in headers"
+                  :key="header.text"
+                  class="text-xs-left px-2"
+                  :width="header.width"
+                >
                   {{ header.text }}
                 </th>
               </tr>
             </template>
-            <template #items="props">
-              <tr :active="props.selected" @click="props.selected = !props.selected">
+
+            <template #item="props">
+              <tr
+                :active="props.selected"
+                @click="console.log('rara')"
+              >
                 <td class="text-xs-left px-2">
-                  <v-checkbox :input-value="props.selected" primary hide-details></v-checkbox>
+                  <v-checkbox
+                    :input-value="props.selected"
+                    primary
+                    hide-details
+                  ></v-checkbox>
                 </td>
                 <td class="text-xs-left px-2">{{ props.item.roomName }}</td>
                 <template v-if="props.item.status === 'busy'">
@@ -85,6 +121,17 @@
 
         </v-stepper-content>
       </v-stepper-items>
+
+      <v-stepper-step
+        step="3"
+        :complete="step > 3"
+      >
+      </v-stepper-step>
+
+      <v-stepper-content step="3">
+        <v-icon>loading</v-icon>
+      </v-stepper-content>
+
     </v-stepper>
   </v-container>
 </template>
@@ -93,25 +140,19 @@
 const WatchRoom = {
   template: '#watch-room',
   computed: {
-    events() {
-      const selectedDate = this.$store.state.selectedDate
-      const eventsSelectedDate = this.$store.state.myEvents.find(
-        day => {
-          console.log('equal:', equalDate(day.date, selectedDate))
-          return equalDate(day.date, selectedDate)
-        }
-
-      )
-      console.log('eventsSelectedDate:', eventsSelectedDate)
-
-      if(!eventsSelectedDate) {
-        return []
+    ...Vuex.mapGetters[
+      'calendarEventsSelectedDate'
+    ],
+    tableStep1() {
+      const myEventsSelectedDate = this.calendarEventsSelectedDate
+      if (!myEventsSelectedDate){
+        //ロード前
+        return
       }
+      if (myEventsSelectedDate.response === 'has events') {
+        return myEventsSelectedDate.items.map( item => {
 
-      if (eventsSelectedDate.response === 'has events') {
-        return eventsSelectedDate.items.map( item => {
           // 変換を指定
-
           const time = String(item.startTime.getHours()).padStart(2,"0")
            + ":" + String(item.startTime.getMinutes()).padStart(2,"0")
            + "-" + String(item.endTime.getHours()).padStart(2,"0")
@@ -127,22 +168,44 @@ const WatchRoom = {
         })
       }
     },
-    mySelectedEvent(){
-      if ( this.e1 === 2 ) {
-        return '2019/8/8 12:00-12:30 とても大変な予定'
-      }
-        return '予定を選ぶ'
-    }
+    titleStep1(){
+      if(!this.selectedEvent) return '予定を選ぶ'
+      console.log('selectedEvent',this.selectedEvent)
+      return (
+        '選択:'
+        + this.selectedEvent.time + ' '
+        + this.selectedEvent.summary
+        )
+    },
+    tableStep2(){
+      const validRooms = this.$store.getters.validRooms
+      const roomEvents = this.$store.state.roomEvents
+      const selectedEvent = this.selectedEvent
+      console.log('this',this)
+
+      const results = validRooms.map(room=>{
+        return {
+          roomId: room.calendarId,
+          roomName: room.name,
+          status: 'busy',
+          summary: 'test',
+          organizer: 'testorg',
+        }
+      })
+      return results
+    },
   },
   data() {
     return {
-      e1: 0,
+      step: 0,
+      loading: false,
       pagination: {
         rowsPerPage: -1,
       },
+
       selectedRooms: [],
-      selectedEvent: [1],
-      loading: false,
+      selectedEvent: null,
+
 
       headers: [{
           text: '時間',
@@ -201,43 +264,16 @@ const WatchRoom = {
       ],
 
 
-      events2: [{
-          roomId: '001',
-          roomName: '17C1',
-          status: 'busy',
-          summary: '先約名2',
-          organizer: 'yoshio.kanamorieee',
-          numAttendees: 7,
-        },
-        {
-          roomId: '002',
-          roomName: '17C2',
-          status: 'busy',
-          summary: '先約名1',
-          organizer: 'kanamoridayo---',
-          numAttendees: 6,
-        },
-        {
-          roomId: '003',
-          roomName: '17C3',
-          status: 'free',
-        },
-        {
-          roomId: '004',
-          roomName: '17C4',
-          status: 'no authority',
-        },
-      ],
-
     }
   },
   methods: {
+    selectEvent(value){
+      this.step = 2
+      this.selectedEvent = value
+    },
     toggleAll() {
       if (this.selectedRooms.length) this.selectedRooms = []
-      else this.selectedRooms = this.events2.slice()
-    },
-    selectEvent(){
-      this.e1 = 2
+      else this.selectedRooms = this.tableStep2.slice()
     },
     back() {
       console.log('back')

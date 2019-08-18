@@ -53,3 +53,40 @@ function getWatchList() {
   const watchList = io.getWatchList()
   return JSON.parse(JSON.stringify(watchList))
 }
+
+function setWatchList(payload) {
+  // payload 分割
+  const subscriber = payload.subscriber
+  const status = payload.status
+  const eventId = payload.eventId
+  const startTimeString = payload.startTimeString
+  const endTimeString = payload.endTimeString
+  const summary = payload.summary
+  const watchRooms = payload.watchRooms
+
+  try{
+    const io = constants.getIo()
+    io.setWatchList({
+      subscriber: subscriber,
+      status: status,
+      eventId: payload.eventId,
+      startTime: new Date(startTimeString),
+      endTime: new Date(endTimeString),
+      summary: summary,
+      watchRooms: watchRooms,
+    })
+  } catch(e) {
+    return {
+      response: 'error',
+      error: JSON.stringify(e),
+    }
+  }
+}
+
+function testWatchList(){
+  setWatchList({
+    subscriber: 'y.k.kanamori@gmail.com',
+    eventId: '233ljuu6fuedvb789hfuidle7s',
+    summary: 'testSummary',
+  })
+}

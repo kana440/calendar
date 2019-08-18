@@ -12,11 +12,12 @@
                 <v-container fluid>
                   <p>会議室フロア</p>
                   <v-radio-group
-                    v-model="floor"
+                    :value="user.floor"
+                    @change="floorSelected=$event"
                     :mandatory="true"
                   >
                     <v-radio
-                      v-for="item in floorList"
+                      v-for="item in floors"
                       :label="item"
                       :value="item"
                     ></v-radio>
@@ -32,7 +33,7 @@
           <v-btn
             color="blue darken-1" text
             @click="save"
-            :disabled="!this.$store.getters.validRooms.length"
+            :disabled="false"
           >Save</v-btn>
         </v-card-actions>
       </v-card>
@@ -43,33 +44,34 @@ const UserSettings = {
   template: '#user-settings',
   data() {
     return {
-      floorInput: '',
+      floorSelected: 'ee',
     }
   },
+
   computed: {
-    floor:{
-      get(){
-        return this.$store.state.user.floor
-      },
-      set(value){
-        this.floorInput = value
-      }
-    },
-    floorList() {
-      return this.$store.getters.floors
-    },
+    ...Vuex.mapGetters([
+      'floors',
+      'validRooms',
+    ]),
+    ...Vuex.mapState([
+      'user',
+    ]),
+
   },
   methods: {
-    async getUserSettings() {
-      const c = await runGas('getUserSettings')
-    },
+    ...Vuex.mapMutations([
+      'patchUserSettings',
+    ]),
+    ...Vuex.mapActions([
+      'setUserSettings',
+    ]),
+
     save() {
-      console.log(this.floorInput)
-      if(this.floorInput)
-      this.$store.commit('patchUserSettings',{
-        floor: this.floorInput
-      })
-      this.$store.dispatch('setUserSettings')
+//        this.$store.commit('patchUserSettings', {
+        this.patchUserSettings({
+          floor: this.floorSelected
+        })
+        this.setUserSettings()
     },
   }
 }

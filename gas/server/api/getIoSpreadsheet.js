@@ -53,6 +53,7 @@ function getIoSpreadsheet() {
 */
   // ioを返す。get[*](*はオブジェクト名)で利用
   return {
+    spread: spread,
     sheetUserSettings: sheetUserSettings,
     sheetWatchList: sheetWatchList,
     sheetRooms: sheetRooms,
@@ -126,6 +127,60 @@ function getIoSpreadsheet() {
         }
       }
       return result
+    },
+
+    setWatchList: function(payload){
+      this.setData({
+        sheetName:'watchList',
+        keys: ['subscriber', 'eventId'],
+        record: payload,
+      })
+    },
+
+    setData: function(payload){
+      const sheetName = payload.sheetName
+      const keys = payload.keys || []
+      const record = payload.record
+
+      const sheet = this.spread.getSheetByName('watchList')
+      const data = sheet.getDataRange().getValues()
+
+      const header = data[1]
+      const headerType = data[0]
+
+      const attrs = keys.map(function(key){
+        const index = header.findIndex(function(item){
+          return item === key
+        })
+        if(index === -1) throw ('key not found:'+ key )
+        return {
+          key: key,
+          index: index,
+        }
+      })
+
+      var i
+      if(keys.length === 0) {
+        i = data.length
+      } else {
+        for(var i=2; i<data.length; i++){
+          if(attrs.every(function(attr){
+            return record[attr.key] === data[i][attr.index]
+          }
+         )) break
+        }
+      }
+
+      sheet.getRange(i+1,1,1,header.length)
+      .setValues([
+        header.map(function(attr,i) {
+          if(headerType[i] === 'Array'){
+            return JSON.stringify(record[attr])
+          }
+          return record[attr]
+        })
+      ])
+      return 'updated'
     },
 
     getAllRecords: function() {
