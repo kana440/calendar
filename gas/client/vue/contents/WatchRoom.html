@@ -140,9 +140,12 @@
 const WatchRoom = {
   template: '#watch-room',
   computed: {
-    ...Vuex.mapGetters[
-      'calendarEventsSelectedDate'
-    ],
+    ...Vuex.mapState([
+      'myEvents',
+    ]),
+    ...Vuex.mapGetters([
+      'calendarEventsSelectedDate',
+    ]),
     tableStep1() {
       const myEventsSelectedDate = this.calendarEventsSelectedDate
       if (!myEventsSelectedDate){
@@ -170,7 +173,6 @@ const WatchRoom = {
     },
     titleStep1(){
       if(!this.selectedEvent) return '予定を選ぶ'
-      console.log('selectedEvent',this.selectedEvent)
       return (
         '選択:'
         + this.selectedEvent.time + ' '
@@ -181,7 +183,6 @@ const WatchRoom = {
       const validRooms = this.$store.getters.validRooms
       const roomEvents = this.$store.state.roomEvents
       const selectedEvent = this.selectedEvent
-      console.log('this',this)
 
       const results = validRooms.map(room=>{
         return {
@@ -267,6 +268,10 @@ const WatchRoom = {
     }
   },
   methods: {
+    ...Vuex.mapGetters[
+      'calendarEventsSelectedDate'
+    ],
+
     selectEvent(value){
       this.step = 2
       this.selectedEvent = value
