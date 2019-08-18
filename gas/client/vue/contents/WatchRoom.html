@@ -268,10 +268,6 @@ const WatchRoom = {
     }
   },
   methods: {
-    ...Vuex.mapGetters[
-      'calendarEventsSelectedDate'
-    ],
-
     selectEvent(value){
       this.step = 2
       this.selectedEvent = value
