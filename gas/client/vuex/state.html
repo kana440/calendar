@@ -7,13 +7,20 @@ const state = {
 
   // data
   selectedDate: new Date('2019/8/12'),
+  selectedEvent: null,
   user: {
     email: null, // String
     floor: null, //String,
   },
   rooms: [],
-  myEvents: [],
-  roomEvents:[],
+  calendarEvents: [],
+  roomsEvents:[],
   watchList: [],
+
+  periodSetting: {
+    hoursFrom: 8,
+    hoursTo: 20,
+    interval: 0.5
+  },
 }
 </script>

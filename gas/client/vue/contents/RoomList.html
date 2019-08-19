@@ -33,7 +33,7 @@ const RoomList = {
       return this.$store.getters.validRooms
     },
     isBusy(){
-      const room = this.$store.state.roomEvents.find()
+      const room = this.$store.state.roomsEvents.find()
       room.items.filter(item=>
         !item.attendees || item.attendees.find(attendee=>attendee.email===calendarId).responseStatus !== "declined"
       )

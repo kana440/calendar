@@ -19,28 +19,32 @@ const mutations = {
     state.initializing = payload
   },
   updateCalendarEvents(state, payload) {
-    const idx = state.myEvents.findIndex(query=>equalDate(query.date, payload.date))
+    const idx = state.calendarEvents.findIndex(query=>equalDate(query.date, payload.date))
     if(idx === -1 ) {
-      state.myEvents.push(payload)
+      state.calendarEvents.push(payload)
     } else {
-      state.myEvents[idx] = payload
+      state.calendarEvents[idx] = payload
     }
   },
-  updateRoomEvents(state, payload) {
-    const idx = state.roomEvents.findIndex(query=>{
+  updateroomsEvents(state, payload) {
+    const idx = state.roomsEvents.findIndex(query=>{
       return equalDate(query.date, payload.date) && query.calendarId === payload.calendarId
     })
     if(idx === -1 ) {
-      state.roomEvents.push(payload)
+      state.roomsEvents.push(payload)
     } else {
-      state.roomEvents[idx] = payload
+      state.roomsEvents[idx] = payload
     }
   },
   switchDrawer(state, payload) {
     state.drawer = !state.drawer
   },
   updateSelectedDate(state, payload) {
+    if(state.selectedDate !== payload) state.selectedEvent = null
     state.selectedDate = payload
+  },
+  updateSelectedEvent(state, payload){
+    state.selectedEvent = payload
   },
   loadingOn(state, payload) {
     state.isLoading = true,

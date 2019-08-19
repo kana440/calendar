@@ -1,4 +1,4 @@
-<template id="watch-room">
+<template id="watch-rooms">
   <v-container>
     <v-stepper v-model="step" vertical>
       <v-stepper-step
@@ -137,8 +137,8 @@
 </template>
 
 <script>
-const WatchRoom = {
-  template: '#watch-room',
+const WatchRooms = {
+  template: '#watch-rooms',
   computed: {
     ...Vuex.mapState([
       'myEvents',
@@ -167,6 +167,7 @@ const WatchRoom = {
             summary: item.summary,
             location: item.location,
             monitored: true,
+            event: item,
           }
         })
       }
@@ -181,7 +182,7 @@ const WatchRoom = {
     },
     tableStep2(){
       const validRooms = this.$store.getters.validRooms
-      const roomEvents = this.$store.state.roomEvents
+      const roomsEvents = this.$store.state.roomsEvents
       const selectedEvent = this.selectedEvent
 
       const results = validRooms.map(room=>{
@@ -268,8 +269,12 @@ const WatchRoom = {
     }
   },
   methods: {
+    ...Vuex.mapMutations([
+      'updateSelectedEvent',
+    ]),
     selectEvent(value){
       this.step = 2
+      this.updateSelectedEvent(value.event)
       this.selectedEvent = value
     },
     toggleAll() {

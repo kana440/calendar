@@ -12,10 +12,76 @@ const getters = {
       && room.validTo >= state.selectedDate
     })
   },
+  validRoomsEventsSelectedEvent(state, getters) {
+    return getters.validRooms.map(room=>{
+      const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
+      if(!roomsEvents || !state.selectedDate || !state.selectedEvent) return {room:room, events:[]}
+      const events = roomsEvents.items
+        .filter(event=>{
+          return (
+            state.selectedEvent.startTime.getTime() <= event.endTime.getTime()
+            && state.selectedEvent.endTime.getTime() >= event.startTime.getTime()
+            )
+      })
+        .filter(event=>{
+          if(!event.attendees) return true
+          const self = event.attendees.find(attendee=>{
+            return attendee.email === event.calendarId
+          })
+          if(!self || self.responseStatus !== 'declined') return true
+          return false
+      })
+      return { room:room, events:events }
+    })
+  },
   calendarEventsSelectedDate(state){
-    return state.myEvents.find(
+    return state.calendarEvents.find(
       events=>equalDate(events.date, state.selectedDate)
     )
+  },
+  roomsEventsSelectedDate(state){
+    return state.roomsEvents.filter(
+      events=>equalDate(events.date, state.selectedDate)
+    )
+  },
+  periods(state){
+    const hoursFrom = state.periodSetting.hoursFrom
+    const hoursTo = state.periodSetting.hoursTo
+    const interval = state.periodSetting.interval
+    const periods = []
+    const time = new Date(state.selectedDate)
+    time.setHours(hoursFrom)
+    for(let i=hoursFrom; i<hoursTo; i+=interval){
+      let from = new Date(time)
+      time.setMinutes(time.getMinutes()+interval*60)
+      let to = new Date(time)
+      periods.push({from,to})
+    }
+    return periods
+  },
+  roomsStatus(state, getters){
+    return getters.validRooms.map(room=>{
+      const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
+      if(!roomsEvents || !state.selectedDate || roomsEvents.length===0) return {room:room, events:[]}
+      return getters.periods.map(period=>{
+        const events = roomsEvents.items
+        .filter(event=>{
+          return (
+            (period.from.getTime()) < event.endTime.getTime()
+            && (period.to.getTime()) > event.startTime.getTime()
+            )
+      })
+        .filter(event=>{
+          if(!event.attendees) return true
+          const self = event.attendees.find(attendee=>{
+            return attendee.email === event.calendarId
+          })
+          if(!self || self.responseStatus !== 'declined') return true
+          return false
+      })
+      return {hour: period.from.getHours(), num: events.length, events:events}
+    })
+  })
   },
 }
 </script>

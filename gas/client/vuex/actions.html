@@ -69,7 +69,7 @@ const actions = {
     commit('updateRooms', rooms)
     commit('updateUserSettings', userSettings)
     dispatch('getCalendarEvents')
-    dispatch('getRoomEvents')
+    dispatch('getroomsEvents')
 
     commit('updateInitializing', false)
 
@@ -87,7 +87,7 @@ const actions = {
     commit('updateCalendarEvents', result)
   },
 
-  async getRoomEvents({commit, state, getters}) {
+  async getroomsEvents({commit, state, getters}) {
     const results = await Promise.all(
       getters.validRooms.map(room => {
         return api.getCalendarEvents({
@@ -96,7 +96,7 @@ const actions = {
         })
       })
     )
-    results.forEach(result=>commit('updateRoomEvents', result))
+    results.forEach(result=>commit('updateroomsEvents', result))
   },
 
   async setUserSettings({ state, commit }){
@@ -124,7 +124,7 @@ const actions = {
   updateSelectedDate({ commit, dispatch }, payload) {
     commit('updateSelectedDate', payload)
     dispatch('getCalendarEvents')
-    dispatch('getRoomEvents')
+    dispatch('getroomsEvents')
   },
 
 
