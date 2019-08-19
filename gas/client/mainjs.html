@@ -5,6 +5,36 @@ function equalDate(date1, date2) {
   && date1.getDate() === date2.getDate()
 }
 
+function getRoomStatus(event,selfEmail,startTime,endTime){
+  if( startTime.getTime() >= event.endTime.getTime()
+  || endTime.getTime() <= event.startTime.getTime()) {
+    return 'ignore'
+  }
+  if(!event.attendees) {
+    if(!event.oragnizer || event.organizer.email !== selfEmail) {
+      return 'busy'
+    } else {
+      return 'accepted'
+    }
+  }
+  const self = event.attendees.find(attendee=>{
+    return attendee.email === event.calendarId
+  })
+  if(!self || self.responseStatus !== 'declined'){
+    if(!event.oragnizer || event.organizer.email !== selfEmail) {
+      return 'busy'
+    } else {
+      return 'accepted'
+    }
+  } else {
+    if(!event.oragnizer || event.organizer.email !== selfEmail) {
+      return 'ignore'
+    } else {
+      return 'declined'
+    }
+  }
+}
+
 function getWrapper(component){
   if(!vueTestUtils) {
     console.log('vueTestUtils not found.')

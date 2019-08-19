@@ -12,6 +12,30 @@ const getters = {
       && room.validTo >= state.selectedDate
     })
   },
+  calendarEventsSelectedDate(state){
+    return state.calendarEvents.find(
+      events=>equalDate(events.date, state.selectedDate)
+    )
+  },
+  roomsEventsSelectedDate(state){
+    return state.roomsEvents.filter(
+      events=>equalDate(events.date, state.selectedDate)
+    )
+  },
+  roomStatus2(state,getters){
+    return getters.validRooms.map(room=>{
+      const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
+      return getters.periods.map(period=>{
+        const status = {from: period.from.getHours(), busy:0, accepted:0, declined:0, ignore:0,}
+        if(!roomsEvents || roomsEvents.length===0) return status
+        roomsEvents.items.forEach(event=>{
+          const result = getRoomStatus(event,state.user.email,period.from,period.to)
+          status[result]+=1
+        })
+        return status
+      })
+    })
+  },
   validRoomsEventsSelectedEvent(state, getters) {
     return getters.validRooms.map(room=>{
       const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
@@ -34,16 +58,7 @@ const getters = {
       return { room:room, events:events }
     })
   },
-  calendarEventsSelectedDate(state){
-    return state.calendarEvents.find(
-      events=>equalDate(events.date, state.selectedDate)
-    )
-  },
-  roomsEventsSelectedDate(state){
-    return state.roomsEvents.filter(
-      events=>equalDate(events.date, state.selectedDate)
-    )
-  },
+
   periods(state){
     const hoursFrom = state.periodSetting.hoursFrom
     const hoursTo = state.periodSetting.hoursTo
