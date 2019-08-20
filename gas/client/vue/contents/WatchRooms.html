@@ -4,6 +4,7 @@
       <v-stepper-step
         step="1"
         :complete="step > 1"
+        @click="updateSelectedEvent(null)"
       >
       {{titleStep1}}
       </v-stepper-step>
@@ -87,11 +88,11 @@
                     hide-details
                   ></v-checkbox>
                 </td>
-                <td class="text-xs-left px-2">{{ props.item.roomName }}</td>
+                <td class="text-xs-left px-2">{{ props.item.name }}</td>
                 <template v-if="props.item.status === 'busy'">
                   <td class="text-xs-left px-2">{{ props.item.summary }}</td>
                   <td class="text-xs-left px-2">{{ props.item.organizer }}</td>
-                  <td class="text-xs-left px-2">{{ props.item.numAttendees }}</td>
+                  <td class="text-xs-left px-2">{{ props.item.status }}</td>
                 </template>
                 <template v-if="props.item.status === 'free'">
                   <td class="px-2">
@@ -142,10 +143,19 @@ const WatchRooms = {
   computed: {
     ...Vuex.mapState([
       'myEvents',
+      'roomsEvents',
+      'user',
+      'selectedEvent',
     ]),
     ...Vuex.mapGetters([
+      'validRooms',
+      'roomsEventsSelectedDate',
       'calendarEventsSelectedDate',
     ]),
+    step(){
+      if(!this.selectedEvent) return 1
+      return 2
+    },
     tableStep1() {
       const myEventsSelectedDate = this.calendarEventsSelectedDate
       if (!myEventsSelectedDate){
@@ -166,6 +176,8 @@ const WatchRooms = {
             time: time,
             summary: item.summary,
             location: item.location,
+            startTime: item.startTime,
+            endTime: item.endTime,
             monitored: true,
             event: item,
           }
@@ -181,25 +193,57 @@ const WatchRooms = {
         )
     },
     tableStep2(){
-      const validRooms = this.$store.getters.validRooms
-      const roomsEvents = this.$store.state.roomsEvents
-      const selectedEvent = this.selectedEvent
+      if(!this.selectedEvent) return this.validRooms
 
-      const results = validRooms.map(room=>{
+      const results = this.roomsEventsSelectedDate.map(roomEvents=>{
+        const room = this.validRooms.find(room=>room.calendarId===roomEvents.calendarId)
+        switch(roomEvents.response){
+          case 'has events': {
+            const events = roomEvents.items
+              const status = {busy:0, accepted:0, declined:0, ignore:0,}
+              events.forEach(event=>{
+                console.log('selectedEvent',this.selectedEvent)
+                const result = getRoomStatus(
+                  event,
+                  roomEvents.calendarId,
+                  state.user.email,
+                  this.selectedEvent.startTime,
+                  this.selectedEvent.endTime
+                )
+                status[result]+=1
+              })
+            return {
+              status,
+              ...room,
+            }
+          }
+          case 'has no events': {
+            return {
+              ...roomEvents,
+              ...room,
+            }
+          }
+          case 'access denied':{
+            return {
+              ...roomEvents,
+              ...room,
+          }
+        }
         return {
           roomId: room.calendarId,
           roomName: room.name,
-          status: 'busy',
+          status: room.status,
           summary: 'test',
           organizer: 'testorg',
         }
-      })
+      }
+    })
+
       return results
     },
   },
   data() {
     return {
-      step: 0,
       loading: false,
       pagination: {
         rowsPerPage: -1,

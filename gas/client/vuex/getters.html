@@ -23,42 +23,32 @@ const getters = {
     )
   },
   roomStatus2(state,getters){
-    return getters.validRooms.map(room=>{
-      const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
-      return getters.periods.map(period=>{
-        const status = {from: period.from.getHours(), busy:0, accepted:0, declined:0, ignore:0,}
-        if(!roomsEvents || roomsEvents.length===0) return status
-        roomsEvents.items.forEach(event=>{
-          const result = getRoomStatus(event,roomsEvents.calendarId,state.user.email,period.from,period.to)
-          status[result]+=1
-        })
-        return status
-      })
-    })
-  },
-  validRoomsEventsSelectedEvent(state, getters) {
-    return getters.validRooms.map(room=>{
-      const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
-      if(!roomsEvents || !state.selectedDate || !state.selectedEvent) return {room:room, events:[]}
-      const events = roomsEvents.items
-        .filter(event=>{
-          return (
-            state.selectedEvent.startTime.getTime() <= event.endTime.getTime()
-            && state.selectedEvent.endTime.getTime() >= event.startTime.getTime()
-            )
-      })
-        .filter(event=>{
-          if(!event.attendees) return true
-          const self = event.attendees.find(attendee=>{
-            return attendee.email === event.calendarId
+    return getters.roomsEventsSelectedDate.map(roomEvents=>{
+      switch (roomEvents.response){
+        case 'has events': {
+          const events = roomEvents.items
+          const cells = getters.periods.map(period=>{
+            const status = {from: period.from.getHours(), busy:0, accepted:0, declined:0, ignore:0,}
+            events.forEach(event=>{
+              const result = getRoomStatus(event,roomEvents.calendarId,state.user.email,period.from,period.to)
+              status[result]+=1
+            })
+            return status
           })
-          if(!self || self.responseStatus !== 'declined') return true
-          return false
-      })
-      return { room:room, events:events }
-    })
+          return {
+            cells,
+            ...roomEvents,
+          }
+        }
+        case 'has no events': {
+          return roomEvents
+        }
+        case 'access denied':{
+          return roomEvents
+        }
+      }
+  })
   },
-
   periods(state){
     const hoursFrom = state.periodSetting.hoursFrom
     const hoursTo = state.periodSetting.hoursTo
