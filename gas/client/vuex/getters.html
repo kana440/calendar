@@ -29,7 +29,7 @@ const getters = {
         const status = {from: period.from.getHours(), busy:0, accepted:0, declined:0, ignore:0,}
         if(!roomsEvents || roomsEvents.length===0) return status
         roomsEvents.items.forEach(event=>{
-          const result = getRoomStatus(event,state.user.email,period.from,period.to)
+          const result = getRoomStatus(event,roomsEvents.calendarId,state.user.email,period.from,period.to)
           status[result]+=1
         })
         return status
