@@ -27,7 +27,7 @@ function getRoomStatus(event,roomCalendarId,selfEmail,startTime,endTime){
       return 'accepted'
     }
   } else {
-    if(!event.oragnizer || event.organizer.email !== selfEmail) {
+    if(!event.organizer || event.organizer.email !== selfEmail) {
       return 'ignore'
     } else {
       return 'declined'
