@@ -4,9 +4,8 @@
       <v-stepper-step
         step="1"
         :complete="step > 1"
-        @click="updateSelectedEvent(null)"
       >
-      {{titleStep1}}
+      <div @click="back">{{titleStep1}}</div>
       </v-stepper-step>
       <v-stepper-items>
         <v-stepper-content step="1">
@@ -15,6 +14,9 @@
             :headers="headers"
             :items="tableStep1"
             :loading="loading"
+            hide-default-footer
+            loading-text="ロード中..."
+            no-data-text="予定がありません"
             :items-per-page="-1"
           >
             <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
@@ -29,12 +31,7 @@
               </tr>
             </template>
             <template #no-data>
-              <span v-if="loading">
-                ロード中
-              </span>
-              <v-alert v-else :value="true" color="info" icon="priority_high">
-                予定はありません
-              </v-alert>
+              No data
             </template>
           </v-data-table>
         </v-stepper-content>
@@ -47,77 +44,20 @@
 
         <v-stepper-content step="2">
           <v-data-table
-            show-select
+            :value="selected"
+            @input="updateSelected"
             :headers="headers2"
             :items="tableStep2"
+            item-key="calendarId"
+            show-select
+            hide-default-footer
             class="elevation-5"
-            item-key="roomId"
-            :loading="loading"
           >
-            <template #headers="{all, indeterminate, headers}">
-              <tr>
-                <th class="text-xs-left px-2" width="10">
-                  <v-checkbox
-                    :input-value="all"
-                    :indeterminate="indeterminate"
-                    primary
-                    hide-details
-                    @click.stop="toggleAll"
-                  ></v-checkbox>
-                </th>
-                <th
-                  v-for="header in headers"
-                  :key="header.text"
-                  class="text-xs-left px-2"
-                  :width="header.width"
-                >
-                  {{ header.text }}
-                </th>
-              </tr>
-            </template>
-
-            <template #item="props">
-              <tr
-                :active="props.selected"
-                @click="console.log('rara')"
-              >
-                <td class="text-xs-left px-2">
-                  <v-checkbox
-                    :input-value="props.selected"
-                    primary
-                    hide-details
-                  ></v-checkbox>
-                </td>
-                <td class="text-xs-left px-2">{{ props.item.name }}</td>
-                <template v-if="props.item.status === 'busy'">
-                  <td class="text-xs-left px-2">{{ props.item.summary }}</td>
-                  <td class="text-xs-left px-2">{{ props.item.organizer }}</td>
-                  <td class="text-xs-left px-2">{{ props.item.status }}</td>
-                </template>
-                <template v-if="props.item.status === 'free'">
-                  <td class="px-2">
-                    <v-btn color="primary" @click.stop="">いますぐ取得</v-btn>
-                  </td>
-                  <td></td>
-                  <td></td>
-                </template>
-
-              </tr>
-            </template>
-            <template #no-data>
-              <span v-if="loading">
-                ロード中
-              </span>
-              <v-alert v-else :value="true" color="info" icon="priority_high">
-                予定はありません
-              </v-alert>
-            </template>
           </v-data-table>
           <v-btn @click='back'>戻る</v-btn>
           <v-btn @click='register'>ウォッチ登録</v-btn>
-
-
         </v-stepper-content>
+
         <v-stepper-content step="3">
 
         </v-stepper-content>
@@ -157,31 +97,38 @@ const WatchRooms = {
       return 2
     },
     tableStep1() {
-      const myEventsSelectedDate = this.calendarEventsSelectedDate
-      if (!myEventsSelectedDate){
-        //ロード前
+      if(!this.calendarEventsSelectedDate){
+        //ロード中
         return
       }
-      if (myEventsSelectedDate.response === 'has events') {
-        return myEventsSelectedDate.items.map( item => {
+      switch(this.calendarEventsSelectedDate.response){
+        case 'has events': {
+          return this.calendarEventsSelectedDate.items.map( item => {
+            // 変換を指定
+            return {
+              eventId: item.eventId,
+              time: getTimeString(item.startTime, item.endTime),
+              summary: item.summary,
+              location: item.location,
+              startTime: item.startTime,
+              endTime: item.endTime,
+              monitored: true,
+              event: item,
+            }
+          })
 
-          // 変換を指定
-          const time = String(item.startTime.getHours()).padStart(2,"0")
-           + ":" + String(item.startTime.getMinutes()).padStart(2,"0")
-           + "-" + String(item.endTime.getHours()).padStart(2,"0")
-           + ":" + String(item.endTime.getMinutes()).padStart(2,"0")
 
-          return {
-            eventId: item.eventId,
-            time: time,
-            summary: item.summary,
-            location: item.location,
-            startTime: item.startTime,
-            endTime: item.endTime,
-            monitored: true,
-            event: item,
-          }
-        })
+        }
+        case 'has no events': {
+
+        }
+        case 'access denied': {
+
+        }
+        dafault :{
+          //エラー
+
+        }
       }
     },
     titleStep1(){
@@ -193,57 +140,78 @@ const WatchRooms = {
         )
     },
     tableStep2(){
-      if(!this.selectedEvent) return this.validRooms
-
+      if(!this.selectedEvent) return []
       const results = this.roomsEventsSelectedDate.map(roomEvents=>{
         const room = this.validRooms.find(room=>room.calendarId===roomEvents.calendarId)
         switch(roomEvents.response){
           case 'has events': {
-            const events = roomEvents.items
-              const status = {busy:0, accepted:0, declined:0, ignore:0,}
-              events.forEach(event=>{
-                console.log('selectedEvent',this.selectedEvent)
-                const result = getRoomStatus(
-                  event,
-                  roomEvents.calendarId,
-                  state.user.email,
-                  this.selectedEvent.startTime,
-                  this.selectedEvent.endTime
-                )
-                status[result]+=1
-              })
-            return {
-              status,
-              ...room,
+            const events = roomEvents.items.filter(event=>{
+              const status = getRoomStatus(
+                event,
+                roomEvents.calendarId,
+                state.user.email,
+                this.selectedEvent.startTime,
+                this.selectedEvent.endTime
+              )
+              if(status === 'busy' || status ==='accepted'){
+                return true
+              }
+              return false
+            }).map(event=>{
+              let organizer
+              if(!event.organizer) {
+                organizer = '非公開'
+              } else {
+                organizer = event.organizer.displayName ?
+                  event.organizer.displayName : event.organizer.email
+              }
+              return {
+                time: getTimeString(event.startTime,event.endTime),
+                summary: event.summary,
+                organizer: organizer,
+              }
+            })
+            if(events.length!==0){
+              const event = events[0]
+              return {
+                calendarId: room.calendarId,
+                name: room.name,
+                status: 'occupied',
+                time: event.time,
+                summary: event.summary,
+                organizer: event.organizer,
+              }
+            } else {
+              return {
+                calendarId: room.calendarId,
+                name: room.name,
+                status: 'available',
+              }
             }
           }
           case 'has no events': {
             return {
-              ...roomEvents,
-              ...room,
+              calendarId: room.calendarId,
+              name: room.name,
+              status: 'available',
             }
           }
           case 'access denied':{
             return {
-              ...roomEvents,
-              ...room,
+              calendarId: room.calendarId,
+              name: room.name,
+              status: 'noAuth',
+            }
           }
         }
-        return {
-          roomId: room.calendarId,
-          roomName: room.name,
-          status: room.status,
-          summary: 'test',
-          organizer: 'testorg',
-        }
-      }
-    })
-
+      })
+      console.log(results)
       return results
     },
   },
   data() {
     return {
+      selected: [],
       loading: false,
       pagination: {
         rowsPerPage: -1,
@@ -283,11 +251,19 @@ const WatchRooms = {
 
       headers2: [{
           text: '部屋',
-          value: 'roomName',
+          value: 'name',
           align: 'left',
           sortable: false,
           width: '60'
         },
+        {
+          text: '空き状況',
+          value: 'status',
+          align: 'left',
+          sortable: false,
+          width: 60,
+        }
+        ,
         {
           text: '先約名',
           value: 'summary',
@@ -299,13 +275,6 @@ const WatchRooms = {
           value: 'organizer',
           align: 'left',
           sortable: false,
-        },
-        {
-          text: '人数',
-          value: 'numAttendees',
-          align: 'center',
-          sortable: false,
-          width: '60'
         },
       ],
 
@@ -321,16 +290,18 @@ const WatchRooms = {
       this.updateSelectedEvent(value.event)
       this.selectedEvent = value
     },
-    toggleAll() {
-      if (this.selectedRooms.length) this.selectedRooms = []
-      else this.selectedRooms = this.tableStep2.slice()
+    updateSelected(value){
+      console.log(value)
     },
     back() {
-      console.log('back')
+      this.selectedEvent = null
 
     },
     register() {
-      console.log('register')
+      console.log('register',
+      this.selected,
+      this.selectedEvent,
+      )
     }
   },
 }
