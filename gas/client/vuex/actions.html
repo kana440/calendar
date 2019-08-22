@@ -121,10 +121,14 @@ const actions = {
     })
   },
 
-  updateSelectedDate({ commit, dispatch }, payload) {
+  async updateSelectedDate({ commit, state, dispatch }, payload) {
+    state.isLoading = true
     commit('updateSelectedDate', payload)
-    dispatch('getCalendarEvents')
-    dispatch('getroomsEvents')
+    await Promise.all([
+      dispatch('getCalendarEvents'),
+      dispatch('getroomsEvents'),
+    ])
+    state.isLoading = false
   },
 
 

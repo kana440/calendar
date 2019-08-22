@@ -1,5 +1,11 @@
 <template id="watch-rooms">
   <v-container>
+    <v-list>
+      <v-btn
+        @click="updateSelectedDate(selectedDate)"
+        ><v-icon>refresh</v-icon></v-btn>
+        <span>{{isLoading}}</span>
+    </v-list>
     <v-stepper v-model="step" vertical>
       <v-stepper-step
         step="1"
@@ -86,6 +92,8 @@ const WatchRooms = {
       'roomsEvents',
       'user',
       'selectedEvent',
+      'isLoading',
+      'selectedDate',
     ]),
     ...Vuex.mapGetters([
       'validRooms',
@@ -284,6 +292,9 @@ const WatchRooms = {
   methods: {
     ...Vuex.mapMutations([
       'updateSelectedEvent',
+    ]),
+    ...Vuex.mapActions([
+      'updateSelectedDate',
     ]),
     selectEvent(value){
       this.step = 2
