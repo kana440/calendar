@@ -123,6 +123,7 @@ const actions = {
 
   async updateSelectedDate({ commit, state, dispatch }, payload) {
     state.isLoading = true
+    commit('updateSelectedEvent',null)
     commit('updateSelectedDate', payload)
     await Promise.all([
       dispatch('getCalendarEvents'),

@@ -6,7 +6,7 @@
         ><v-icon>refresh</v-icon></v-btn>
         <span>{{isLoading}}</span>
     </v-list>
-    <v-stepper v-model="step" vertical>
+    <v-stepper :value="step" vertical>
       <v-stepper-step
         step="1"
         :complete="step > 1"
@@ -19,25 +19,16 @@
             class="elevation-5"
             :headers="headers"
             :items="tableStep1"
-            :loading="loading"
+            :loading="isLoading"
             hide-default-footer
             loading-text="ロード中..."
             no-data-text="予定がありません"
             :items-per-page="-1"
+            @click:row="selectEvent($event)"
           >
             <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
-            <template #item="{ item, select }">
-              <tr :active="select" @click="selectEvent(item)">
-                <td>{{ item.time }}</td>
-                <td>{{ item.summary }}</td>
-                <td>{{ item.location }}</td>
-                <td>
-                  <v-icon>alarm</v-icon>
-                </td>
-              </tr>
-            </template>
             <template #no-data>
-              No data
+              予定がありません
             </template>
           </v-data-table>
         </v-stepper-content>

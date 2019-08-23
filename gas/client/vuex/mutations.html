@@ -36,6 +36,29 @@ const mutations = {
       state.roomsEvents[idx] = payload
     }
   },
+  clearCalendarEvents(state, payload) {
+    const result = {
+      date: payload,
+      response: 'loading',
+      items: [],
+    }
+    const idx = state.calendarEvents.findIndex(query=>equalDate(query.date, payload))
+    if(idx === -1 ) {
+      state.calendarEvents.push(result)
+    } else {
+      state.calendarEvents[idx] = result
+    }
+  },
+  clearRoomsEvents(state, payload) {
+    const idx = state.roomsEvents.findIndex(query=>{
+      return equalDate(query.date, payload.date) && query.calendarId === payload.calendarId
+    })
+    if(idx === -1 ) {
+      state.roomsEvents.push(payload)
+    } else {
+      state.roomsEvents[idx] = payload
+    }
+  },
   switchDrawer(state, payload) {
     state.drawer = !state.drawer
   },
