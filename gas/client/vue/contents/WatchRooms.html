@@ -41,8 +41,7 @@
 
         <v-stepper-content step="2">
           <v-data-table
-            :value="selected"
-            @input="updateSelected"
+            v-model="selected"
             :headers="headers2"
             :items="tableStep2"
             item-key="calendarId"
@@ -204,7 +203,6 @@ const WatchRooms = {
           }
         }
       })
-      console.log(results)
       return results
     },
   },
@@ -286,6 +284,7 @@ const WatchRooms = {
     ]),
     ...Vuex.mapActions([
       'updateSelectedDate',
+      'setWatchList',
     ]),
     selectEvent(value){
       this.step = 2
@@ -293,17 +292,30 @@ const WatchRooms = {
       this.selectedEvent = value
     },
     updateSelected(value){
-      console.log(value)
     },
     back() {
       this.selectedEvent = null
 
     },
     register() {
-      console.log('register',
-      this.selected,
-      this.selectedEvent,
-      )
+      if(this.selected.length===0) return
+      const watchRooms = this.selected.map(room=>{
+        return {
+          calendarId: room.calendarId,
+          name: room.name,
+        }
+      })
+
+      const record ={
+        subscriber: this.user.email,
+        status: '01_ウォッチ中',
+        eventId: this.selectedEvent.eventId,
+        startTime: this.selectedEvent.startTime,
+        endTime: this.selectedEvent.endTime,
+        summary: this.selectedEvent.summary,
+        watchRooms: watchRooms,
+      }
+      this.setWatchList(record)
     }
   },
 }

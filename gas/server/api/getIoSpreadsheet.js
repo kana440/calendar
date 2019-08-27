@@ -174,10 +174,17 @@ function getIoSpreadsheet() {
       sheet.getRange(i+1,1,1,header.length)
       .setValues([
         header.map(function(attr,i) {
-          if(headerType[i] === 'Array'){
-            return JSON.stringify(record[attr])
+          switch(headerType[i]){
+            case 'Array': {
+              return JSON.stringify(record[attr])
+            }
+//            case 'Date': {
+//              return new Date(record[attr])
+//            }
+            default: {
+              return record[attr]
+            }
           }
-          return record[attr]
         })
       ])
       return 'updated'

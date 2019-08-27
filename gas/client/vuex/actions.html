@@ -37,7 +37,7 @@ const api = {
   async setWatchList({
     subscriber, status, eventId, startTime, endTime, summary, watchRooms
   }) {
-    const result = await this.runGas('setWatchList',{
+    const payload = {
       subscriber,
       status,
       eventId,
@@ -45,8 +45,8 @@ const api = {
       endTimeString: endTime.toLocaleString(),
       summary,
       watchRooms,
-    })
-    console.log('api result:',result)
+    }
+    const result = await this.runGas('setWatchList',payload)
     return result
   },
 
@@ -99,7 +99,9 @@ const actions = {
     results.forEach(result=>commit('updateroomsEvents', result))
   },
 
-  async setUserSettings({ state, commit }){
+  async setUserSettings({ state, commit , dispatch}){
+    commit('clearRoomsEvents')
+    dispatch('getRoomsEvents')
     commit('updateNewUser', false)
     commit('updateInitializing', true)
     await api.setUserSettings(state.user)
@@ -107,17 +109,10 @@ const actions = {
   },
 
   async setWatchList({state, commit},{
-    event,
-    watchRooms,
+    subscriber, status, eventId, startTime, endTime, summary, watchRooms
   }){
-    const result = await api.setWatchList({
-      subscriber: state.user.email,
-      status: '01_ウォッチ中',
-      eventId: event.eventId,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      summary: event.summary,
-      watchRooms: watchRooms,
+    return await api.setWatchList({
+      subscriber, status, eventId, startTime, endTime, summary, watchRooms
     })
   },
 
