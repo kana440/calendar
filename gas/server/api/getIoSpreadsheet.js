@@ -136,13 +136,69 @@ function getIoSpreadsheet() {
         record: payload,
       })
     },
+    
+    getWatchList: function(payload){
+      return this.getData('watchList',payload)
+    },
+    
+    getData: function(sheetName, payload){
+      //payload
+      const filter = payload.filter || {}
+      
+      //スプレッドから配列取得
+      const sheet = this.spread.getSheetByName(sheetName)
+      const data = sheet.getDataRange().getValues()
+      const headerType = data.shift()
+      const header = data.shift()
+
+      //filterの作成
+      const attrs = Object.keys(filter).map(function(key){
+        const index = header.findIndex(function(item){
+          return item === key
+        })
+        if(index === -1) throw ('key not found:'+ key )
+        return {
+          key: key,
+          index: index,
+        }
+      })
+      
+      const result = data.filter(function(line){
+       return attrs.every(function(attr){
+         return line[attr.index] === filter[attr.key]
+       })
+      })
+      
+      const result2 = result.map(function(line){
+        const obj = {}
+        header.forEach(function(attr, i) {
+          if(line[i] === 'undefined') {
+            obj[header[i]] = null
+            return
+          }
+          switch(headerType[i]){
+            case 'Array': {
+              obj[header[i]] = JSON.parse(line[i])
+              return
+            }
+            default: {
+              obj[header[i]] = line[i]
+              return
+            }
+          }
+        })
+        return obj
+      })
+      
+      return result2
+    },
 
     setData: function(payload){
       const sheetName = payload.sheetName
       const keys = payload.keys || []
       const record = payload.record
 
-      const sheet = this.spread.getSheetByName('watchList')
+      const sheet = this.spread.getSheetByName(sheetName)
       const data = sheet.getDataRange().getValues()
 
       const header = data[1]
@@ -178,9 +234,6 @@ function getIoSpreadsheet() {
             case 'Array': {
               return JSON.stringify(record[attr])
             }
-//            case 'Date': {
-//              return new Date(record[attr])
-//            }
             default: {
               return record[attr]
             }

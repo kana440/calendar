@@ -4,11 +4,12 @@ function isAddNeeded(record) {
 
 function roomCheck() {
   const io = constants.getIo()
-  const recordsWatching = io.getAllRecords()
-    .filter(function (item) {
-      // 条件: ウォッチ中のみ
-      return item.status === '01_ウォッチ中'
-    })
+  const recordsWatching = io.getWatchList({
+    filter: {
+      subscriber: Session.getActiveUser().getEmail(),
+      status: '01_ウォッチ中',
+    }
+  })
 
   recordsWatching.forEach(function (record) {
     const event = record.event
