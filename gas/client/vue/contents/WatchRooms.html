@@ -56,9 +56,19 @@
             :sort-desc="[true,true]"
             items-per-page="999"
           >
+
+            <template #top>
+              <v-spacer></v-spacer>
+              <v-btn @click='back'>戻る</v-btn>
+              <v-btn @click='register'>ウォッチ登録</v-btn>
+            </template>
+            <template #footer>
+              <v-spacer></v-spacer>
+              <v-btn @click='back'>戻る</v-btn>
+              <v-btn @click='register'>ウォッチ登録</v-btn>
+            </template>
+
           </v-data-table>
-          <v-btn @click='back'>戻る</v-btn>
-          <v-btn @click='register'>ウォッチ登録</v-btn>
         </v-stepper-content>
 
         <v-stepper-content step="3">
@@ -225,7 +235,7 @@ const WatchRooms = {
           value: 'time',
           align: 'left',
           sortable: false,
-          width: '60'
+          width: '80'
         },
         {
           text: '予定名',
@@ -263,6 +273,13 @@ const WatchRooms = {
           width: '60',
         }
         ,
+        {
+          text: '先約時間',
+          value: 'time',
+          align: 'left',
+          sortable: false,
+          width: 80,
+        },
         {
           text: '先約名',
           value: 'summary',
