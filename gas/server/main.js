@@ -22,17 +22,19 @@ function test() {
 }
 
 function getUserSettings() {
-  const currentUser = Session.getActiveUser().getEmail()
   const io = constants.getIo()
-  const userSettings = io.getUserSettings()
-  const result = userSettings.find(function(item) {
-    return item.email === currentUser
+  const currentUser = Session.getActiveUser().getEmail()
+  const userSettings = io.getUserSettings({
+    filter: {
+      email: currentUser
+    }
   })
-  if(!result) {
-    // error のとき
+  if(userSettings.length === 0) {
     return { email: currentUser }
+  } else if (userSettings.length > 1) {
+    throw 'key duplicated'
   }
-  return result
+  return userSettings[0]
 }
 
 function setUserSettings(payload) {
