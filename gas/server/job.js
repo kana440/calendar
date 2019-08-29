@@ -1,68 +1,90 @@
-function isAddNeeded(record) {
-  return record.subscriber === Session.getActiveUser().getEmail()
-}
-
 function roomCheck() {
   const io = constants.getIo()
-  const recordsWatching = io.getWatchList({
+  const subscriber = Session.getActiveUser().getEmail()
+  const watchList = io.getWatchList({
     filter: {
-      subscriber: Session.getActiveUser().getEmail(),
+      subscriber: subscriber,
       status: '01_ウォッチ中',
     }
   })
 
-  recordsWatching.forEach(function (record) {
-    const event = record.event
-    const rooms = record.rooms
-    const currentTime = new Date()
-
-    // 時間ぎれでないか更新する
-    if (event.endTime.getTime() < currentTime.getTime()) {
-      record.status = '03_時間切れ'
-      io.setRecord(record)
-      return
-    }
-
-    // ウォッチ対象の会議室の予定を確認し、空いている会議室を取得する
-    const roomsAvailable = rooms.filter(function (room) {
-      if (room.status) {
-        const result = getCalendarEvents({
-          calendarId: room.id,
-          startTime: event.startTime,
-          endTime: event.endTime,
-        })
-        if (result.response === 'has no events') return true
-      }
-      return false
-    }, {
-      event: event
+  watchList.forEach(function (record) {
+    // 最新の予定を取得する
+    const result = getEvent({
+      calendarId: subscriber,
+      eventId: record.eventId,
     })
 
-    if (roomsAvailable.length) {
-      // addの場合
-      if (isAddNeeded(record)) {
-        const roomsAdded = roomsAvailable.map(function (room) {
-          room.statusCode = addGuest({
-            eventId: this.eventId,
-            roomId: room.id,
-          })
-          return room
-        }, event)
-        if(roomsAdded.some(function(room){return room.statusCode === 'OK-added'})){
-          const messageAdded = createAddedMessage(record, roomsAdded)
-          MailApp.sendEmail(messageAdded)
-          record.status = '05_空き取得済'
-          io.setRecord(record)
-        }else{
-          throw 'error'
+    if(result.response === 'success') {
+      const event = result.event
+      // ToDo: 予定の時間が変更されていたら時間を変更してDBもアップデート
+      if(event.startTime.getTime() !== record.startTime.getTime()
+        || event.endTime.getTime() !== record.endTime.getTime()
+        ) {
+          record.startTime = event.startTime
+          record.endTime = event.endTime
+          io.setWatchList(record)
         }
-      // ジョブ実行者と登録者と異なる場合はメール連絡を行う
-      } else {
-        const messageAvailable = createAvailableMessage(record, roomsAvailable)
-        MailApp.sendEmail(messageAvailable)
-        record.status = '02_空き連絡済'
-        io.setRecord(record)
+      // 予定がキャンセルされていたら削除する
+      if(event.status === constants.EVENT_CANCELLED ){
+        record.status = '09_キャンセル'
+        io.setWatchList(record)
+        return
       }
+      // 時間ぎれでないか更新する
+      if (record.endTime.getTime() < (new Date()).getTime()) {
+        record.status = '03_時間切れ'
+        io.setWatchList(record)
+        return
+      }
+
+      // ウォッチ対象の会議室の予定を確認し、空いている会議室を取得する
+      const roomsAvailable = record.watchRooms.filter(function (room) {
+        const result = getCalendarEvents({
+          calendarId: room.calendarId,
+          startTime: record.startTime,
+          endTime: record.endTime,
+        })
+        switch(result.response){
+          case 'has no events': {
+            return true
+          }
+          case 'has events': {
+            return result.items.every(function(event){
+              if(!event.attendees) return false
+              const self = event.attendees.find(function(attendee){
+                return attendee.email === room.calendarId
+              })
+              if(!self || self.responseStatus !== 'declined') return false
+              //declinedのときはhas no event
+              return true
+            })
+          }
+          default: {
+            return false
+          }
+        }
+
+      })
+
+      // 空いていれば、会議室を追加する
+      if (roomsAvailable.length) {
+        const roomsAdded = roomsAvailable.map(function (room) {
+          return addGuests({
+            calendarId: subscriber,
+            eventId: record.eventId,
+            guests: roomsAvailable.map(function(room){return {email: room.calendarId}}),
+          })
+        })
+        //ToDo: メール送付
+/*
+        const messageAdded = createAddedMessage(record, roomsAdded)
+        MailApp.sendEmail(messageAdded)
+*/
+        //空き取得済にして帰る
+        record.status = '05_空き取得済'
+        io.setWatchList(record)
+    }
     }
   })
 }

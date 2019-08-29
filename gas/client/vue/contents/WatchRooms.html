@@ -25,6 +25,8 @@
             no-data-text="予定がありません"
             :items-per-page="-1"
             @click:row="selectEvent($event)"
+            dense
+            items-per-page="999"
           >
             <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
             <template #no-data>
@@ -48,6 +50,11 @@
             show-select
             hide-default-footer
             class="elevation-5"
+            dense
+            multi-sort
+            :sort-by="['status','name']"
+            :sort-desc="[true,true]"
+            items-per-page="999"
           >
           </v-data-table>
           <v-btn @click='back'>戻る</v-btn>
@@ -210,11 +217,6 @@ const WatchRooms = {
     return {
       selected: [],
       loading: false,
-      pagination: {
-        rowsPerPage: -1,
-      },
-
-      selectedRooms: [],
       selectedEvent: null,
 
 
@@ -250,15 +252,15 @@ const WatchRooms = {
           text: '部屋',
           value: 'name',
           align: 'left',
-          sortable: false,
+          sortable: true,
           width: '60'
         },
         {
           text: '空き状況',
           value: 'status',
           align: 'left',
-          sortable: false,
-          width: 60,
+          sortable: true,
+          width: '60',
         }
         ,
         {

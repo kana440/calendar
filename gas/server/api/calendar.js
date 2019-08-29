@@ -79,6 +79,25 @@ function getEvent(payload) {
   }
 }
 
+function addGuests(payload) {
+  // payloadの分割(ES6なら引数分割を使えるが、使えないので地道に展開)
+  const calendarId = payload.calendarId
+  const eventId = payload.eventId
+  const guests  = payload.guests
+  if (!calendarId || !eventId || !guests) {
+    throw 'arguments required'
+  }
+  // 更新項目のみbodyに格納、更新のメール通知をoptionに設定
+  const body = {
+    attendees: guests
+  }
+  const options = {
+    sendNotifications: false
+  }
+  // 会議室追加
+  Calendar.Events.patch(body, calendarId, eventId, options)
+}
+
 function addGuest(payload) {
   //payloadの分割(ES6なら引数分割を使えるが、使えないので地道に展開)
   const eventId = payload.eventId;
@@ -183,6 +202,7 @@ function eventGetter(item) {
     organizer: item.organizer,//Optional
     visibility : item.visibility,//Optional,'private',undefined('default'),'public','confidential'
     htmlLink: item.htmlLink,
-    attendees: item.attendees
+    attendees: item.attendees,
+    status: item.status,
   }
 }
