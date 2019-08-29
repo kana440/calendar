@@ -21,6 +21,15 @@ function test() {
   }
 }
 
+function setJob(){
+  ScriptApp.getProjectTriggers().filter(function(trigger){
+    return trigger.getHandlerFunction() === 'roomCheck'
+  }).forEach(function(trigger){
+    ScriptApp.deleteTrigger(trigger)
+  })
+  ScriptApp.newTrigger('roomCheck').timeBased().everyMinutes(5).create()
+}
+
 function getUserSettings() {
   const io = constants.getIo()
   const currentUser = Session.getActiveUser().getEmail()

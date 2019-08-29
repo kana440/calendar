@@ -133,7 +133,7 @@ function getIoSpreadsheet() {
       return this._getData('watchList',payload)
     },
     setUserSettings: function(payload){
-      this._setData({
+      this._setData('userSettings',{
         keys: ['email'],
         record: payload,
       })
