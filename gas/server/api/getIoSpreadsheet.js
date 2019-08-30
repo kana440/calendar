@@ -8,6 +8,7 @@
 }
 */
 function getIoSpreadsheet() {
+  // コンストラクタ
   const SPREAD_ID = PropertiesService.getScriptProperties().getProperty('spreadId')
   if (!SPREAD_ID) {
     throw {
@@ -17,8 +18,32 @@ function getIoSpreadsheet() {
   // 初期化（設定値取得）
   const _spread = SpreadsheetApp.openById(SPREAD_ID)
   const _sheets = {}
+
   // ioを返す。get[*](*はオブジェクト名)で利用
   return {
+    getUserSettings: function(payload){
+      return this._getData('userSettings', payload)
+    },
+    getRooms: function(payload){
+      return this._getData('rooms',payload)
+    },
+    getWatchList: function(payload){
+      return this._getData('watchList',payload)
+    },
+    setUserSettings: function(payload){
+      this._setData('userSettings',{
+        keys: ['email'],
+        record: payload,
+      })
+    },
+    setWatchList: function(payload){
+      this._setData('watchList', {
+        keys: ['subscriber', 'eventId'],
+        record: payload,
+      })
+    },
+
+    //内部利用
     _spread: _spread,
     _sheets: _sheets,
     _getData: function(sheetName, payload){
@@ -122,27 +147,6 @@ function getIoSpreadsheet() {
         })
       ])
       return 'updated'
-    },
-    getUserSettings: function(payload){
-      return this._getData('userSettings', payload)
-    },
-    getRooms: function(payload){
-      return this._getData('rooms',payload)
-    },
-    getWatchList: function(payload){
-      return this._getData('watchList',payload)
-    },
-    setUserSettings: function(payload){
-      this._setData('userSettings',{
-        keys: ['email'],
-        record: payload,
-      })
-    },
-    setWatchList: function(payload){
-      this._setData('watchList', {
-        keys: ['subscriber', 'eventId'],
-        record: payload,
-      })
     },
   }
 }

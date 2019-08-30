@@ -1,9 +1,42 @@
 // clientからの呼出しに使う
-function execute(func, payload) {
-  return eval(func + '(payload)')
+function runGoogleScript(method, payload) {
+  const methods = {
+    getRooms: getRooms_,
+    getUserSettings: getUserSettings_,
+    getCalendarEvents: apiGetCalendarEvents_,
+    getWatchList: getWatchList_,
+    setUserSettings: setUserSettings_,
+    setWatchList: setWatchList_,
+    setTrigger: setTrigger_,
+    addGuests: addGuests_,
+  }
+//  if(!methods[method]) throw "no methods named " + method
+  return methods[method](payload)
 }
 
-function apiGetCalendarEvents(payload) {
+function getRooms_(){
+  const io = constants.getIo()
+  const rooms = io.getRooms()
+  return JSON.parse(JSON.stringify(rooms));
+}
+
+function getUserSettings_() {
+  const currentUser = Session.getActiveUser().getEmail()
+  const io = constants.getIo()
+  const userSettings = io.getUserSettings({
+    filter: {
+      email: currentUser
+    }
+  })
+  if(userSettings.length === 0) {
+    return { email: currentUser }
+  } else if (userSettings.length > 1) {
+    throw 'key duplicated'
+  }
+  return userSettings[0]
+}
+
+function apiGetCalendarEvents_(payload) {
   const calendarId = payload.calendarId
   const startTime = new Date(payload.dateString)
   const endTime = new Date(payload.dateString)
@@ -16,6 +49,59 @@ function apiGetCalendarEvents(payload) {
   result.date = payload.dateString
   return JSON.parse(JSON.stringify(result))
 }
+
+function getWatchList_() {
+  const io = constants.getIo()
+  const watchList = io.getWatchList()
+  return JSON.parse(JSON.stringify(watchList))
+}
+
+function setUserSettings_(payload) {
+  const currentUser = Session.getActiveUser().getEmail()
+  if(payload.email !== currentUser) throw 'current user error'
+  const io = constants.getIo()
+  io.setUserSettings(payload)
+}
+
+function setWatchList_(payload) {
+  // payload 分割
+  const subscriber = payload.subscriber
+  const status = payload.status
+  const eventId = payload.eventId
+  const startTimeString = payload.startTimeString
+  const endTimeString = payload.endTimeString
+  const summary = payload.summary
+  const watchRooms = payload.watchRooms
+
+  try{
+    const io = constants.getIo()
+    io.setWatchList({
+      subscriber: subscriber,
+      status: status,
+      eventId: payload.eventId,
+      startTime: new Date(startTimeString),
+      endTime: new Date(endTimeString),
+      summary: summary,
+      watchRooms: watchRooms,
+    })
+  } catch(e) {
+    return {
+      response: 'error',
+      error: JSON.stringify(e),
+    }
+  }
+}
+
+function setTrigger_(){
+  ScriptApp.getProjectTriggers().filter(function(trigger){
+    return trigger.getHandlerFunction() === 'roomCheck'
+  }).forEach(function(trigger){
+    ScriptApp.deleteTrigger(trigger)
+  })
+  ScriptApp.newTrigger('roomCheck').timeBased().everyMinutes(5).create()
+}
+
+
 // カレンダIdおよび時刻(min,max)を指定して予定を取得する
 function getCalendarEvents(payload) {
   // payloadの分割(ES6なら引数分割を使えるが、使えないので地道に展開)
@@ -40,7 +126,7 @@ function getCalendarEvents(payload) {
         return item.status !== constants.EVENT_CANCELLED
       })
       // 変換:null等は適切な文字列に変換
-      .map(eventGetter)
+      .map(_eventGetter_)
 
     // 予定の有無を取得
     return {
@@ -69,7 +155,7 @@ function getEvent(payload) {
   try {
     return {
       response : 'success',
-      event: eventGetter(Calendar.Events.get('primary', eventId)),
+      event: _eventGetter_(Calendar.Events.get('primary', eventId)),
     }
   } catch (e) {
     return {
@@ -79,7 +165,7 @@ function getEvent(payload) {
   }
 }
 
-function addGuests(payload) {
+function addGuests_(payload) {
   // payloadの分割(ES6なら引数分割を使えるが、使えないので地道に展開)
   const calendarId = payload.calendarId
   const eventId = payload.eventId
@@ -180,7 +266,7 @@ function addGuest(payload) {
 }
 
 // 汎用的に呼ばれるサブルーチン・コールバック関数等を定義
-function eventGetter(item) {
+function _eventGetter_(item) {
   var startTime, endTime
   if(item.start.dateTime) {
     startTime = new Date(item.start.dateTime)

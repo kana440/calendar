@@ -15,7 +15,7 @@ const api = {
   },
 
   async getCalendarEvents({calendarId, selectedDate}){
-    const result = await this.runGas('apiGetCalendarEvents',{
+    const result = await this.runGas('getCalendarEvents',{
       calendarId: calendarId,
       dateString: selectedDate.toLocaleDateString(),
     })
@@ -55,8 +55,11 @@ const api = {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
-        [func](payload)
-    )
+        .runGoogleScript(func,payload)
+    ).catch(e=>{
+      console.log(e)
+      throw e
+    })
   }
 }
 
@@ -69,7 +72,7 @@ const actions = {
     commit('updateRooms', rooms)
     commit('updateUserSettings', userSettings)
     dispatch('getCalendarEvents')
-    dispatch('getroomsEvents')
+    dispatch('getRoomsEvents')
 
     commit('updateInitializing', false)
 
@@ -87,7 +90,7 @@ const actions = {
     commit('updateCalendarEvents', result)
   },
 
-  async getroomsEvents({commit, state, getters}) {
+  async getRoomsEvents({commit, state, getters}) {
     const results = await Promise.all(
       getters.validRooms.map(room => {
         return api.getCalendarEvents({
@@ -122,7 +125,7 @@ const actions = {
     commit('updateSelectedDate', payload)
     await Promise.all([
       dispatch('getCalendarEvents'),
-      dispatch('getroomsEvents'),
+      dispatch('getRoomsEvents'),
     ])
     state.isLoading = false
   },
