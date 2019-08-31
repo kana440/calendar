@@ -22,6 +22,12 @@ const getters = {
       events=>equalDate(events.date, state.selectedDate)
     )
   },
+  myWatchList(state){
+    return state.watchList.filter(record => (
+      record.status === "01_ウォッチ中"　
+      && record.subscriber === state.user.email
+    ))
+  },
   roomStatus2(state,getters){
     return getters.roomsEventsSelectedDate.map(roomEvents=>{
       switch (roomEvents.response){

@@ -1,11 +1,73 @@
 <template id='watch-list'>
   <v-container>
-    作成中
+    <v-card>
+      <v-card-title>
+        ウォッチ中一覧
+        <div class="flex-grow-1"></div>
+        <v-text-field
+          v-model="search"
+          append-icon="search"
+          label="Search"
+          single-line
+          hide-details
+      ></v-text-field>
+      </v-card-title>
+      <v-data-table
+        :headers="headerWatchList"
+        :items="tableWatchList"
+        :search="search"
+        @click:row="console.log($event)"
+      >
+        <template #item.delete = {item}>
+          <v-btn icon
+            @click.stop="console.log('delete on',item)"
+          ><v-icon>delete</v-icon></v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
   </v-container>
 </template>
 
 <script>
   const WatchList = {
     template: '#watch-list',
+    data() {
+      return {
+        search: '',
+        headerWatchList:[
+          {
+            text: '時間',
+            value: 'time',
+            align: 'left',
+            sortable: false,
+          },
+          {
+            text: '予定名',
+            value: 'summary',
+            align: 'left',
+            sortable: false,
+          },
+          {
+            text: '',
+            value: 'delete',
+            align: 'right',
+            sortable: false,
+          },
+        ],
+      }
+    },
+    computed: {
+      ...Vuex.mapGetters([
+        'myWatchList',
+      ]),
+      tableWatchList(){
+        return this.myWatchList.map(record=>({
+          eventId: record.eventId,
+          time: getTimeString(record.startTime, record.endTime),
+          summary: record.summary,
+        })
+      )
+    }
   }
+}
 </script>

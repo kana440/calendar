@@ -27,6 +27,15 @@ const api = {
     return result
   },
 
+  async getWatchList(){
+    const result = await this.runGas('getWatchList')
+    result.forEach(item=>{
+       item.startTime = new Date(item.startTime)
+       item.endTime = new Date(item.endTime)
+    })
+    return result
+  },
+
   async setUserSettings({email,floor}){
     const result = await this.runGas('setUserSettings',{
       email,
@@ -73,10 +82,11 @@ const actions = {
     commit('updateUserSettings', userSettings)
     dispatch('getCalendarEvents')
     dispatch('getRoomsEvents')
+    dispatch('getWatchList')
 
     commit('updateInitializing', false)
 
-    // フロア情報が不明な時はダイアログを表示
+    // ユーザ情報がない時・あってもフロア情報が無効のとき、ユーザ設定
     if(!getters.validRooms.length){
       commit('updateNewUser', true)
     }
@@ -134,8 +144,8 @@ const actions = {
   },
 
 
-  async updateWatchList({ commit, state },payload){
-    results = await runGas('getWatchList')
+  async getWatchList({ commit, state },payload){
+    const results = await api.getWatchList()
     commit('updateWatchList',results)
   },
 

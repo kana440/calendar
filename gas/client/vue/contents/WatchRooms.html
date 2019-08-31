@@ -58,6 +58,7 @@
             :sort-by="['status','name']"
             :sort-desc="[false,false]"
             items-per-page="999"
+            @click:row="switchSelect($event)"
           >
 
             <template #top>
@@ -73,7 +74,7 @@
             <template #item.status = {value,item}>
               <v-btn
                 v-if="value==='available'"
-                @click="console.log('clicked:'+item.calendarId)"
+                @click.stop="console.log('clicked:'+item.calendarId)"
               >今すぐ取得</v-btn>
               <span v-else> {{value}} </span>
             </template>
@@ -324,6 +325,16 @@ const WatchRooms = {
       'updateSelectedDate',
       'setWatchList',
     ]),
+    switchSelect(event){
+      console.log(this.selected)
+      const index = this.selected.findIndex(item=>item.calendarId === event.calendarId)
+      console.log('index:',index)
+      if(index===-1) {
+        this.selected.push(event)
+      } else {
+        this.selected.splice(index,1)
+      }
+    },
     selectEvent(value){
       this.step = 2
       this.updateSelectedEvent(value.event)

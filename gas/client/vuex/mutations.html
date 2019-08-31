@@ -36,6 +36,9 @@ const mutations = {
       state.roomsEvents[idx] = payload
     }
   },
+  updateWatchList(state, payload){
+    state.watchList = payload
+  },
   clearCalendarEvents(state, payload) {
     state.calendarEvents=[]
   },

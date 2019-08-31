@@ -12,8 +12,7 @@
                 <v-container fluid>
                   <p>会議室フロア</p>
                   <v-radio-group
-                    :value="user.floor"
-                    @change="floorSelected=$event"
+                    v-model=selectedFloor
                     :mandatory="true"
                   >
                     <v-radio
@@ -44,7 +43,7 @@ const UserSettings = {
   template: '#user-settings',
   data() {
     return {
-      floorSelected: 'ee',
+      selectedFloor: !this.user  || !this.user.floor ? '' : this.user.floor
     }
   },
 
@@ -65,11 +64,10 @@ const UserSettings = {
     ...Vuex.mapActions([
       'setUserSettings',
     ]),
-
     save() {
 //        this.$store.commit('patchUserSettings', {
         this.patchUserSettings({
-          floor: this.floorSelected
+          floor: this.selectedFloor
         })
         this.setUserSettings()
     },
