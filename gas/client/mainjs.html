@@ -14,7 +14,6 @@ function getTimeString(startTime, endTime){
 }
 
 function getRoomStatus(event,roomCalendarId,selfEmail,startTime,endTime){
-  console.log('getRoomStatus,3times,',startTime, endTime, event)
   if( startTime.getTime() >= event.endTime.getTime()
   || endTime.getTime() <= event.startTime.getTime()) {
     return 'ignore'

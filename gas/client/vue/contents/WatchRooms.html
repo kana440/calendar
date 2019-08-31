@@ -155,9 +155,15 @@ const WatchRooms = {
         )
     },
     tableStep2(){
-      if(!this.selectedEvent) return []
+      if(!this.selectedEvent || this.validRooms.length === 0 ) return []
       const results = this.roomsEventsSelectedDate.map(roomEvents=>{
         const room = this.validRooms.find(room=>room.calendarId===roomEvents.calendarId)
+        //roomがないときはロード中
+        if(!room) return {
+          calendarId: roomEvents.calendarId,
+          name: '',
+          status: 'loading',
+        }
         switch(roomEvents.response){
           case 'has events': {
             const events = roomEvents.items.filter(event=>{
@@ -186,6 +192,7 @@ const WatchRooms = {
                 organizer: organizer,
               }
             })
+            console.log('room',room)
             if(events.length!==0){
               const event = events[0]
               return {
@@ -204,6 +211,7 @@ const WatchRooms = {
               }
             }
           }
+          console.log('noEvent room',room)
           case 'has no events': {
             return {
               calendarId: room.calendarId,
@@ -211,6 +219,7 @@ const WatchRooms = {
               status: 'available',
             }
           }
+          console.log('denied room',room)
           case 'access denied':{
             return {
               calendarId: room.calendarId,

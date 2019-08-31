@@ -104,9 +104,12 @@ const actions = {
 
   async setUserSettings({ state, commit , dispatch}){
     commit('clearRoomsEvents')
-    dispatch('getRoomsEvents')
+//    commit('clearCalendarEvents')
     commit('updateNewUser', false)
+
     commit('updateInitializing', true)
+//    dispatch('getCalendarEvents')
+    dispatch('getRoomsEvents')
     await api.setUserSettings(state.user)
     commit('updateInitializing', false)
   },
