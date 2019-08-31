@@ -32,6 +32,9 @@
             <template #no-data>
               予定がありません
             </template>
+            <template #item.watch = {value} >
+              {{value}}
+            </template>
           </v-data-table>
         </v-stepper-content>
 
@@ -53,7 +56,7 @@
             dense
             multi-sort
             :sort-by="['status','name']"
-            :sort-desc="[true,true]"
+            :sort-desc="[false,false]"
             items-per-page="999"
           >
 
@@ -66,6 +69,13 @@
               <v-spacer></v-spacer>
               <v-btn @click='back'>戻る</v-btn>
               <v-btn @click='register'>ウォッチ登録</v-btn>
+            </template>
+            <template #item.status = {value,item}>
+              <v-btn
+                v-if="value==='available'"
+                @click="console.log('clicked:'+item.calendarId)"
+              >今すぐ取得</v-btn>
+              <span v-else> {{value}} </span>
             </template>
 
           </v-data-table>
@@ -260,7 +270,7 @@ const WatchRooms = {
         },
         {
           text: 'ウォッチ',
-          value: 'location',
+          value: 'watch',
           align: 'center',
           sortable: false,
           width: '60'
