@@ -28,7 +28,7 @@ const getters = {
       && record.subscriber === state.user.email
     ))
   },
-  roomsStatus2(state,getters){
+  roomsStatus(state,getters){
     return getters.roomsEventsSelectedDate.map(roomEvents=>{
       switch (roomEvents.response){
         case 'has events': {
@@ -43,7 +43,8 @@ const getters = {
           })
           return {
             calendarId: roomEvents.calendarId,
-            status: 'has events',
+            name: roomEvents.name,
+            response: 'has events',
             items: roomEvents.items,
             cells: cells,
           }
@@ -51,13 +52,15 @@ const getters = {
         case 'has no events': {
           return {
             calendarId: roomEvents.calendarId,
-            status: 'has no events',
+            name: roomEvents.name,
+            response: 'has no events',
           }
         }
         case 'access denied':{
           return {
             calendarId: roomEvents.calendarId,
-            status: 'access denied',
+            name: roomEvents.name,
+            response: 'access denied',
           }
         }
       }
@@ -77,30 +80,6 @@ const getters = {
       periods.push({from,to})
     }
     return periods
-  },
-  roomsStatus(state, getters){
-    return getters.validRooms.map(room=>{
-      const roomsEvents = getters.roomsEventsSelectedDate.find(event=>room.calendarId===event.calendarId)
-      if(!roomsEvents || !state.selectedDate || roomsEvents.length===0) return {room:room, events:[]}
-      return getters.periods.map(period=>{
-        const events = roomsEvents.items
-        .filter(event=>{
-          return (
-            (period.from.getTime()) < event.endTime.getTime()
-            && (period.to.getTime()) > event.startTime.getTime()
-            )
-      })
-        .filter(event=>{
-          if(!event.attendees) return true
-          const self = event.attendees.find(attendee=>{
-            return attendee.email === event.calendarId
-          })
-          if(!self || self.responseStatus !== 'declined') return true
-          return false
-      })
-      return {hour: period.from.getHours(), num: events.length, events:events}
-    })
-  })
   },
 }
 </script>

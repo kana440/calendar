@@ -102,11 +102,13 @@ const actions = {
 
   async getRoomsEvents({commit, state, getters}) {
     const results = await Promise.all(
-      getters.validRooms.map(room => {
-        return api.getCalendarEvents({
+      getters.validRooms.map(async room => {
+        const result = await api.getCalendarEvents({
           calendarId: room.calendarId,
           selectedDate: state.selectedDate,
         })
+        result.name = room.name
+        return result
       })
     )
     results.forEach(result=>commit('updateroomsEvents', result))

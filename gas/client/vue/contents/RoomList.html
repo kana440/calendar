@@ -1,22 +1,58 @@
 <template id="room-list">
   <v-container>
-    <table>
-      <thead>
-        <tr dark black>
-          <th>会議室名</th>
-          <th
-            colspan="2"
-           v-for="time in times"
-          >{{time}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="room in rooms">
-          <td>{{room.name}}</td>
-          <td class="cell" v-for="status in room.status">{{status}}</td>
-        </tr>
-      </tbody>
-    </table>
+    <v-card>
+      <v-card-title>
+        タイトル
+      </v-card-title>
+      <v-simple-table
+       fixed-header
+       dense
+      >
+        <thead>
+          <tr>
+            <th>部屋</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <template
+            v-for="roomStatus in roomsStatus"
+          >
+            <tr>
+              <td>{{roomStatus.name}}</td>
+              <template v-if="roomStatus.response==='has events'">
+                <template v-for="cell in roomStatus.cells">
+                  <template v-if="cell.accepted.length>0">
+                    <td @click="onClick({calendarId: roomStatus.calendarId})"> a </td>
+                  </template>
+                  <template v-else-if="cell.declined.length>0">
+                    <td @click="onClick"> d </td>
+                  </template>
+                  <template v-else-if="cell.busy.length>0">
+                    <td @click="onClick"> b </td>
+                  </template>
+                  <template v-else>
+                    <td @click="onClick"> f </td>
+                  </template>
+                </template>
+              </template>
+              <template v-else-if="roomStatus.response==='has no events'">
+                <template v-for="period in periods">
+                  <td @click="onClick"> f </td>
+                </template>
+              </template>
+              <template v-else-if="roomStatus.response==='access denied'">
+                <template v-for="period in periods">
+                  <td @click="onClick"> d </td>
+                </template>
+              </template>
+            </tr>
+          </template>
+
+        </tbody>
+      </v-simple-table>
+    </v-card>
   </v-container>
 </template>
 
@@ -28,9 +64,49 @@ const RoomList = {
       times: [9,10,11,12,13,14,15,16,17,18,19,20],
     }
   },
+  methods: {
+    onClick(value){
+      console.log('clicked:',value)
+    },
+  },
   computed: {
-    rooms(){
-      return this.$store.getters.validRooms
+    ...Vuex.mapGetters([
+      'roomsStatus',
+      'periods',
+    ]),
+    tableRoomsStatus(){
+      return this.roomsStatus.map(roomStatus=>{
+        switch(roomStatus.response){
+          case 'has events': {
+            return {
+              calendarId: roomStatus.calendarId,
+              name: roomStatus.name,
+            }
+          }
+          case 'has no events': {
+            return {
+              calendarId: roomStatus.calendarId,
+              name: roomStatus.name,
+            }
+          }
+          case 'access denied': {
+            return {
+              calendarId: roomStatus.calendarId,
+              name: roomStatus.name,
+            }
+          }
+        }
+      })
+    },
+    testArray(){
+      return [
+        {
+          name: 'a',
+        },
+        {
+          name: 'b',
+        },
+      ]
     },
     isBusy(){
       const room = this.$store.state.roomsEvents.find()
