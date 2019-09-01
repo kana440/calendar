@@ -41,6 +41,9 @@
     </v-tooltip>
 
     <v-spacer></v-spacer>
+      <v-btn
+        @click="updateSelectedDate(selectedDate)"
+      ><v-icon>refresh</v-icon></v-btn>
   </v-app-bar>
 
 </template>
@@ -54,6 +57,9 @@
       }
     },
     computed: {
+      ...Vuex.mapState([
+        'selectedDate',
+      ]),
       drawer() {
         return this.$store.state.drawer
       },
@@ -75,6 +81,9 @@
       }
     },
     methods: {
+      ...Vuex.mapActions([
+        'updateSelectedDate',
+      ]),
       switchDrawer() {
         this.$store.commit('switchDrawer');
       },

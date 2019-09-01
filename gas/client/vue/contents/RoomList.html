@@ -7,11 +7,14 @@
       <v-simple-table
        fixed-header
        dense
+       class = "data"
       >
         <thead>
           <tr>
             <th>部屋</th>
-            <th></th>
+            <template v-for="time in times">
+              <th colspan="2" style="text-align: center">{{time}}</th>
+            </template>
           </tr>
         </thead>
         <tbody>
@@ -20,33 +23,24 @@
             v-for="roomStatus in roomsStatus"
           >
             <tr>
-              <td>{{roomStatus.name}}</td>
+              <td class="room">{{roomStatus.name}}</td>
+              <td class="cell"></td>
               <template v-if="roomStatus.response==='has events'">
-                <template v-for="cell in roomStatus.cells">
-                  <template v-if="cell.accepted.length>0">
-                    <td @click="onClick({calendarId: roomStatus.calendarId})"> a </td>
-                  </template>
-                  <template v-else-if="cell.declined.length>0">
-                    <td @click="onClick"> d </td>
-                  </template>
-                  <template v-else-if="cell.busy.length>0">
-                    <td @click="onClick"> b </td>
-                  </template>
-                  <template v-else>
-                    <td @click="onClick"> f </td>
-                  </template>
+                <template v-for="(priod,i) in periods">
+                  <td class="cell" :class="status(roomStatus.cells[i])" @click="onClick"> {{statusText(roomStatus.cells[i])}} </td>
                 </template>
               </template>
               <template v-else-if="roomStatus.response==='has no events'">
                 <template v-for="period in periods">
-                  <td @click="onClick"> f </td>
+                  <td class="cell" @click="onClick">○</td>
                 </template>
               </template>
               <template v-else-if="roomStatus.response==='access denied'">
                 <template v-for="period in periods">
-                  <td @click="onClick"> d </td>
+                  <td class="cell occupied" @click="onClick">-</td>
                 </template>
               </template>
+              <td class="cell"></td>
             </tr>
           </template>
 
@@ -61,10 +55,30 @@ const RoomList = {
   template: '#room-list',
   data(){
     return {
-      times: [9,10,11,12,13,14,15,16,17,18,19,20],
+      times: [9,10,11,12,13,14,15,16,17,18,19],
     }
   },
   methods: {
+    status(cell){
+      if(cell.accepted.length > 0 ){
+        return 'checked'
+      } else if (cell.declined.length > 0) {
+        return 'dashed'
+      } else if (cell.busy.length > 0) {
+        return 'occupied'
+      }
+    },
+    statusText(cell){
+      if(cell.accepted.length > 0 ){
+        return '✔︎'
+      } else if (cell.declined.length > 0) {
+        return '✖︎'
+      } else if (cell.busy.length > 0) {
+        return '-'
+      } else {
+        return '○'
+      }
+    },
     onClick(value){
       console.log('clicked:',value)
     },
@@ -119,7 +133,21 @@ const RoomList = {
 }
 </script>
 
-<style scoped>
+<style>
+.data th {
+  padding : 0 0;
+  text-align : center;
+}
+
+.data td.room {
+  min-width: 5rem;
+}
+
+.data td {
+  padding : 0 0;
+  text-align : center;
+}
+
 .checked {
   background-color: #eeffff;
   color: #3884ff;
@@ -135,21 +163,21 @@ const RoomList = {
   color: red;
 }
 
-td.cell {
+.data td.cell {
   min-width: 2rem;
   max-width: 2rem;
 }
 
-td.cell:nth-child(odd){
+.data td.cell:nth-child(odd){
   border-left: 1px #dfdfdf solid;
   border-right: 1px #efefef dashed;
 }
 
-td.cell:nth-child(3) {
+.data td.cell:nth-child(3) {
   border-left: 1px #222222 solid;
 }
 
-td.cell.data:nth-child(25) {
+.data td.cell.data:nth-child(25) {
   border-left: 1px #222222 solid;
   border-right: 0px;
 }
