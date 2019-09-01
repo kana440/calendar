@@ -16,15 +16,72 @@
         :headers="headerWatchList"
         :items="tableWatchList"
         :search="search"
-        @click:row="console.log($event)"
+        @click:row="selectedRecord=$event;dialog=true"
       >
         <template #item.delete = {item}>
           <v-btn icon
-            @click.stop="console.log('delete on',item)"
+            @click.stop="selectedRecord=$event;deleteDialog=true"
           ><v-icon>delete</v-icon></v-btn>
         </template>
       </v-data-table>
     </v-card>
+
+    <v-dialog
+      v-model="dialog"
+    >
+      <v-card>
+        <v-card-title>
+          summary
+          <div class="flex-grow-1"></div>
+          <v-btn
+            icon
+            @click="deleteDialog=true"
+          ><v-icon>delete</v-icon></v-btn>
+
+        </v-card-title>
+        <v-data-table
+          :headers="headerWatchRooms"
+          :items="tableWatchRooms"
+          hide-default-footer
+          items-per-page="999"
+        >
+        </v-data-table>
+      </v-card>
+    </v-dialog>
+
+
+    <v-dialog
+      v-model="deleteDialog"
+      width="300"
+    >
+      <v-card>
+        <v-card-title
+          class="headline">
+          ウォッチを止めますか？</v-card-title>
+        <v-card-text>
+          XX
+        </v-card-text>
+        <v-card-actions>
+          <div class="flex-grow-1"></div>
+            <v-btn
+              color="green darken-1"
+              text
+              @click="deleteDialog = false"
+            >
+              Disagree
+            </v-btn>
+
+            <v-btn
+              color="green darken-1"
+              text
+              @click="deleteDialog = false"
+            >
+              Agree
+            </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -34,6 +91,9 @@
     data() {
       return {
         search: '',
+        dialog: false,
+        deleteDialog: false,
+        selectedRecord: null,
         headerWatchList:[
           {
             text: '時間',
@@ -54,6 +114,14 @@
             sortable: false,
           },
         ],
+        headerWatchRooms: [
+          {
+            text: '部屋',
+            value: 'name',
+            align: 'left',
+            sortable: false,
+          },
+        ],
       }
     },
     computed: {
@@ -65,9 +133,18 @@
           eventId: record.eventId,
           time: getTimeString(record.startTime, record.endTime),
           summary: record.summary,
+          watchRooms: record.watchRooms,
         })
       )
+      },
+      tableWatchRooms(){
+        if(!this.selectedRecord) return []
+        return this.selectedRecord.watchRooms.map(room=>{
+          return {
+            name: room.name,
+          }
+        })
+      },
     }
   }
-}
 </script>

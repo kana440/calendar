@@ -28,29 +28,37 @@ const getters = {
       && record.subscriber === state.user.email
     ))
   },
-  roomStatus2(state,getters){
+  roomsStatus2(state,getters){
     return getters.roomsEventsSelectedDate.map(roomEvents=>{
       switch (roomEvents.response){
         case 'has events': {
           const events = roomEvents.items
           const cells = getters.periods.map(period=>{
-            const status = {from: period.from.getHours(), busy:0, accepted:0, declined:0, ignore:0,}
+            const status = {busy:[], accepted:[], declined:[]}
             events.forEach(event=>{
               const result = getRoomStatus(event,roomEvents.calendarId,state.user.email,period.from,period.to)
-              status[result]+=1
+              if(result!=='ignore') status[result].push(event)
             })
             return status
           })
           return {
-            cells,
-            ...roomEvents,
+            calendarId: roomEvents.calendarId,
+            status: 'has events',
+            items: roomEvents.items,
+            cells: cells,
           }
         }
         case 'has no events': {
-          return roomEvents
+          return {
+            calendarId: roomEvents.calendarId,
+            status: 'has no events',
+          }
         }
         case 'access denied':{
-          return roomEvents
+          return {
+            calendarId: roomEvents.calendarId,
+            status: 'access denied',
+          }
         }
       }
   })
