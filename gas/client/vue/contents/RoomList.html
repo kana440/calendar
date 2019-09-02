@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        タイトル
+        空き会議室から探す（○:空き時間）
       </v-card-title>
       <v-simple-table
        fixed-header
@@ -23,11 +23,19 @@
             v-for="roomStatus in roomsStatus"
           >
             <tr>
-              <td class="room">{{roomStatus.name}}</td>
+              <td class="room">{{roomStatus.name}}{{roomStatus.caledarId}}</td>
               <td class="cell"></td>
               <template v-if="roomStatus.response==='has events'">
-                <template v-for="(priod,i) in periods">
-                  <td class="cell" :class="status(roomStatus.cells[i])" @click="onClick"> {{statusText(roomStatus.cells[i])}} </td>
+                <template v-for="(period,i) in periods">
+                  <room-list-cell
+                  v-bind:start-time="period.from"
+                  v-bind:calendar-id="roomStatus.calendarId"
+                  v-bind:name="roomStatus.calendarId"
+                  v-bind:accepted="roomStatus.cells[i].accepted"
+                  v-bind:declined="roomStatus.cells[i].declined"
+                  v-bind:busy="roomStatus.cells[i].busy"
+                  >
+                  </room-list-cell>
                 </template>
               </template>
               <template v-else-if="roomStatus.response==='has no events'">
@@ -51,8 +59,50 @@
 </template>
 
 <script>
+const RoomListCell = {
+  template: `<td class="cell" :class="status" @click="onClick">{{text}}</td>`,
+  props: {
+    calendarId: String,
+    name: String,
+    startTime: Date,
+    accepted: Array,
+    declined: Array,
+    busy: Array,
+  },
+  methods: {
+    onClick(){
+      console.log(this.calendarId, this.startTime, this.name)
+    },
+  },
+  computed: {
+    status(){
+      if(this.accepted.length > 0 ){
+        return 'checked'
+      } else if (this.declined.length > 0) {
+        return 'dashed'
+      } else if (this.busy.length > 0) {
+        return 'occupied'
+      }
+    },
+    text(){
+      if(this.accepted.length > 0 ){
+        return '✔︎'
+      } else if (this.declined.length > 0) {
+        return '✖︎'
+      } else if (this.busy.length > 0) {
+        return '-'
+      } else {
+        return '○'
+      }
+    }
+  },
+}
+
 const RoomList = {
   template: '#room-list',
+  components: {
+    RoomListCell: RoomListCell,
+  },
   data(){
     return {
       times: [9,10,11,12,13,14,15,16,17,18,19],
@@ -141,6 +191,7 @@ const RoomList = {
 
 .data td.room {
   min-width: 5rem;
+  text-align : left;
 }
 
 .data td {
