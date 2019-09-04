@@ -1,41 +1,42 @@
 <template id="user-settings">
-      <v-card>
-        <v-card-title>
-          <span class="headline">会議室取得ツールへようこそ</span>
-        </v-card-title>
-        <v-card-text>
-          はじめに利用する会議室を選んでください。<br>
-          登録後も「メニュー＞設定」から変更できます。<br>
-          <v-layout>
-            <v-flex xs6>
-              <v-card>
-                <v-container fluid>
-                  <p>会議室フロア</p>
-                  <v-radio-group
-                    v-model=selectedFloor
-                    :mandatory="true"
-                  >
-                    <v-radio
-                      v-for="item in floors"
-                      :label="item"
-                      :value="item"
-                    ></v-radio>
-                  </v-radio-group>
-                </v-container>
-              </v-card>
-            </v-flex>
-          </v-layout>
+  <v-card>
+    <v-card-title>
+      <span class="headline">会議室取得ツールへようこそ</span>
+    </v-card-title>
+    <v-card-text>
+      はじめに利用する会議室を選んでください。<br>
+      登録後も「メニュー＞設定」から変更できます。<br>
+    </v-card-text>
 
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="blue darken-1" text
-            @click="save"
-            :disabled="false"
-          >Save</v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-layout>
+      <v-flex xs6>
+        <v-card>
+          <v-container fluid>
+            <p>会議室フロア</p>
+            <v-radio-group
+              v-model="selectedFloor"
+              :mandatory="true"
+            >
+              <v-radio
+                v-for="item in floors"
+                :label="item"
+                :value="item"
+              ></v-radio>
+            </v-radio-group>
+          </v-container>
+        </v-card>
+      </v-flex>
+    </v-layout>
+
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <v-btn
+        color="blue darken-1" text
+        @click="save"
+        :disabled="false"
+      >Save</v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
@@ -43,8 +44,12 @@ const UserSettings = {
   template: '#user-settings',
   data() {
     return {
-      selectedFloor: !this.user  || !this.user.floor ? '' : this.user.floor
+      selectedFloor: null
     }
+  },
+
+  created(){
+    this.selectedFloor =  this.user.floor
   },
 
   computed: {

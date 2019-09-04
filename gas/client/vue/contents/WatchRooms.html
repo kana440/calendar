@@ -1,102 +1,61 @@
 <template id="watch-rooms">
   <v-container>
-    <v-list>
-      <v-btn
-        @click="updateSelectedDate(selectedDate)"
-        ><v-icon>refresh</v-icon></v-btn>
-        <span>{{isLoading}}</span>
-    </v-list>
-    <v-stepper :value="step" vertical>
-      <v-stepper-step
-        step="1"
-        :complete="step > 1"
+    <v-data-table
+      class="elevation-5"
+      :headers="headers"
+      :items="tableStep1"
+      :loading="isLoading"
+      hide-default-footer
+      loading-text="ロード中..."
+      no-data-text="予定がありません"
+      @click:row="selectEvent($event)"
+      items-per-page="999"
+    >
+      <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
+      <template #no-data>
+        予定がありません
+      </template>
+      <template #item.watch = {value} >
+        {{value}}
+      </template>
+    </v-data-table>
+
+    <v-dialog v-model="selectedEvent">
+      <v-data-table
+        v-model="selected"
+        :headers="headers2"
+        :items="tableStep2"
+        item-key="calendarId"
+        show-select
+        hide-default-footer
+        class="elevation-5"
+        multi-sort
+        :sort-by="['status','name']"
+        :sort-desc="[false,false]"
+        items-per-page="999"
+        @click:row="switchSelect($event)"
       >
-      <div @click="back">{{titleStep1}}</div>
-      </v-stepper-step>
-      <v-stepper-items>
-        <v-stepper-content step="1">
-          <v-data-table
-            class="elevation-5"
-            :headers="headers"
-            :items="tableStep1"
-            :loading="isLoading"
-            hide-default-footer
-            loading-text="ロード中..."
-            no-data-text="予定がありません"
-            @click:row="selectEvent($event)"
-            dense
-            items-per-page="999"
-          >
-            <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
-            <template #no-data>
-              予定がありません
-            </template>
-            <template #item.watch = {value} >
-              {{value}}
-            </template>
-          </v-data-table>
-        </v-stepper-content>
 
-        <v-stepper-step
-          step="2"
-          :complete="step > 2"
-        >会議室を選ぶ
-        </v-stepper-step>
+        <template #top>
+          <v-spacer></v-spacer>
+          <v-btn @click='back'>戻る</v-btn>
+          <v-btn @click='register'>ウォッチ登録</v-btn>
+        </template>
+        <template #footer>
+          <v-spacer></v-spacer>
+          <v-btn @click='back'>戻る</v-btn>
+          <v-btn @click='register'>ウォッチ登録</v-btn>
+        </template>
+        <template #item.status = {value,item}>
+          <v-btn
+            v-if="value==='available'"
+            @click.stop="console.log('clicked:'+item.calendarId)"
+          >今すぐ取得</v-btn>
+          <span v-else> {{value}} </span>
+        </template>
 
-        <v-stepper-content step="2">
-          <v-data-table
-            v-model="selected"
-            :headers="headers2"
-            :items="tableStep2"
-            item-key="calendarId"
-            show-select
-            hide-default-footer
-            class="elevation-5"
-            dense
-            multi-sort
-            :sort-by="['status','name']"
-            :sort-desc="[false,false]"
-            items-per-page="999"
-            @click:row="switchSelect($event)"
-          >
-
-            <template #top>
-              <v-spacer></v-spacer>
-              <v-btn @click='back'>戻る</v-btn>
-              <v-btn @click='register'>ウォッチ登録</v-btn>
-            </template>
-            <template #footer>
-              <v-spacer></v-spacer>
-              <v-btn @click='back'>戻る</v-btn>
-              <v-btn @click='register'>ウォッチ登録</v-btn>
-            </template>
-            <template #item.status = {value,item}>
-              <v-btn
-                v-if="value==='available'"
-                @click.stop="console.log('clicked:'+item.calendarId)"
-              >今すぐ取得</v-btn>
-              <span v-else> {{value}} </span>
-            </template>
-
-          </v-data-table>
-        </v-stepper-content>
-
-        <v-stepper-content step="3">
-
-        </v-stepper-content>
-      </v-stepper-items>
-
-      <v-stepper-step
-        step="3"
-        :complete="step > 3"
-      >
-      </v-stepper-step>
-
-      <v-stepper-content step="3">
-        <v-icon>loading</v-icon>
-      </v-stepper-content>
-
-    </v-stepper>
+      </v-data-table>
+    </v-dialog>
   </v-container>
 </template>
 

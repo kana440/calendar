@@ -9,9 +9,29 @@ function runGoogleScript(method, payload) {
     setWatchList: setWatchList_,
     setTrigger: setTrigger_,
     addGuests: addGuests_,
+    createEvent: apiCreateEvent_,
   }
 //  if(!methods[method]) throw "no methods named " + method
   return methods[method](payload)
+}
+
+function apiCreateEvent_(payload){
+  const calendarId = payload.calendarEvent
+  const startTime = new Date(payload.startTimeString)
+  const endTime = new Date(payload.endTimeString)
+  const summary = payload.summary
+  const attendees = payload.attendees
+
+  Calendar.Events.insert({
+    start: {
+      dateTime: startTime.toISOString()
+    },
+    end: {
+      dateTime: endTime.toISOString()
+    },
+    summary: summary,
+    attendees: attendees,
+  }, calendarId)
 }
 
 function getRooms_(){

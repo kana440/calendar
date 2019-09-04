@@ -2,17 +2,18 @@
   <v-container>
     <v-card>
       <v-card-title>
-        空き会議室から探す（○:空き時間）
+        空き会議室一覧
       </v-card-title>
+      <v-container>
       <v-simple-table
-       fixed-header
-       dense
-       class = "data"
+        dense
+        fixed-header
+        class = "data"
       >
         <thead>
           <tr>
             <th>部屋</th>
-            <template v-for="time in times">
+            <template v-for="time of times">
               <th colspan="2" style="text-align: center">{{time}}</th>
             </template>
           </tr>
@@ -20,32 +21,24 @@
         <tbody>
 
           <template
-            v-for="roomStatus in roomsStatus"
+            v-for="(room,i) of validRooms"
           >
             <tr>
-              <td class="room">{{roomStatus.name}}{{roomStatus.caledarId}}</td>
+              <td class="room">{{room.name}}{{room.caledarId}}</td>
               <td class="cell"></td>
-              <template v-if="roomStatus.response==='has events'">
-                <template v-for="(period,i) in periods">
-                  <room-list-cell
+              <template v-for="(period,j) in periods">
+                <template v-if="roomsStatus.length===validRooms.length">
+                <room-list-cell
                   v-bind:start-time="period.from"
-                  v-bind:calendar-id="roomStatus.calendarId"
-                  v-bind:name="roomStatus.calendarId"
-                  v-bind:accepted="roomStatus.cells[i].accepted"
-                  v-bind:declined="roomStatus.cells[i].declined"
-                  v-bind:busy="roomStatus.cells[i].busy"
+                  v-bind:calendar-id="room.calendarId"
+                  v-bind:name="room.name"
+                  v-bind:response="roomsStatus[i].response"
+                  v-bind:cells="roomsStatus[i].cells[j]"
                   >
-                  </room-list-cell>
+                </room-list-cell>
                 </template>
-              </template>
-              <template v-else-if="roomStatus.response==='has no events'">
-                <template v-for="period in periods">
-                  <td class="cell" @click="onClick">○</td>
-                </template>
-              </template>
-              <template v-else-if="roomStatus.response==='access denied'">
-                <template v-for="period in periods">
-                  <td class="cell occupied" @click="onClick">-</td>
+                <template v-else>
+                  <td class="cell"></td>
                 </template>
               </template>
               <td class="cell"></td>
@@ -54,6 +47,7 @@
 
         </tbody>
       </v-simple-table>
+      </v-container>
     </v-card>
   </v-container>
 </template>
@@ -65,9 +59,8 @@ const RoomListCell = {
     calendarId: String,
     name: String,
     startTime: Date,
-    accepted: Array,
-    declined: Array,
-    busy: Array,
+    response: String,
+    cells: Object,
   },
   methods: {
     onClick(){
@@ -76,23 +69,46 @@ const RoomListCell = {
   },
   computed: {
     status(){
-      if(this.accepted.length > 0 ){
-        return 'checked'
-      } else if (this.declined.length > 0) {
-        return 'dashed'
-      } else if (this.busy.length > 0) {
-        return 'occupied'
+      switch(this.response){
+        case 'has events': {
+          if(this.cells.accepted.length > 0 ){
+            return 'checked'
+          } else if (this.cells.declined.length > 0) {
+            return 'dashed'
+          } else if (this.cells.busy.length > 0) {
+            return 'occupied'
+          }
+        }
+        case 'has no events': {
+          return 'available'
+        }
+        case 'access denied': {
+          return 'dashed'
+        }
       }
     },
     text(){
-      if(this.accepted.length > 0 ){
-        return '✔︎'
-      } else if (this.declined.length > 0) {
-        return '✖︎'
-      } else if (this.busy.length > 0) {
-        return '-'
-      } else {
-        return '○'
+      switch(this.response){
+        case 'has events': {
+          if(this.cells.accepted.length > 0 ){
+            return '✔︎'
+          } else if (this.cells.declined.length > 0) {
+            return '✖︎'
+          } else if (this.cells.busy.length > 0) {
+            return '-'
+          } else {
+            return '○'
+          }
+        }
+        case 'has no events': {
+          return '○'
+        }
+        case 'access denied': {
+          return '-'
+        }
+        default: {
+          return this.response
+        }
       }
     }
   },
@@ -135,6 +151,7 @@ const RoomList = {
   },
   computed: {
     ...Vuex.mapGetters([
+      'validRooms',
       'roomsStatus',
       'periods',
     ]),
@@ -228,7 +245,7 @@ const RoomList = {
   border-left: 1px #222222 solid;
 }
 
-.data td.cell.data:nth-child(25) {
+.data td.cell.data:nth-child(23) {
   border-left: 1px #222222 solid;
   border-right: 0px;
 }

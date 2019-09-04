@@ -34,7 +34,9 @@ const getters = {
         case 'has events': {
           const events = roomEvents.items
           const cells = getters.periods.map(period=>{
-            const status = {busy:[], accepted:[], declined:[]}
+            const status = {
+              busy:[], accepted:[], declined:[]
+            }
             events.forEach(event=>{
               const result = getRoomStatus(event,roomEvents.calendarId,state.user.email,period.from,period.to)
               if(result!=='ignore') status[result].push(event)
@@ -49,18 +51,30 @@ const getters = {
             cells: cells,
           }
         }
-        case 'has no events': {
+        case 'has no events':{
+          const cells = getters.periods.map(period=>{
+            return {
+              busy:[], accepted:[], declined:[]
+            }
+          })
           return {
             calendarId: roomEvents.calendarId,
             name: roomEvents.name,
             response: 'has no events',
+            cells: cells,
           }
         }
         case 'access denied':{
+          const cells = getters.periods.map(period=>{
+            return {
+              busy:[], accepted:[], declined:[]
+            }
+          })
           return {
             calendarId: roomEvents.calendarId,
             name: roomEvents.name,
             response: 'access denied',
+            cells: cells,
           }
         }
       }
