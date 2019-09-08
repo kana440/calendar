@@ -1,0 +1,65 @@
+<script>
+const RoomListCell = {
+  template: `<td class="cell" :class="status" @click="onClick">{{text}}</td>`,
+  props: {
+    calendarId: String,
+    name: String,
+    startTime: Date,
+    response: String,
+    cells: Object,
+  },
+  methods: {
+    onClick(){
+      this.$emit('on-click',{
+        calendarId: this.calendarId,
+        startTime: this.startTime,
+      })
+    },
+  },
+  computed: {
+    status(){
+      switch(this.response){
+        case 'has events': {
+          if(this.cells.accepted.length > 0 ){
+            return 'checked'
+          } else if (this.cells.declined.length > 0) {
+            return 'dashed'
+          } else if (this.cells.busy.length > 0) {
+            return 'occupied'
+          }
+        }
+        case 'has no events': {
+          return 'available'
+        }
+        case 'access denied': {
+          return 'dashed'
+        }
+      }
+    },
+    text(){
+      switch(this.response){
+        case 'has events': {
+          if(this.cells.accepted.length > 0 ){
+            return '✔︎'
+          } else if (this.cells.declined.length > 0) {
+            return '✖︎'
+          } else if (this.cells.busy.length > 0) {
+            return '-'
+          } else {
+            return '○'
+          }
+        }
+        case 'has no events': {
+          return '○'
+        }
+        case 'access denied': {
+          return '-'
+        }
+        default: {
+          return this.response
+        }
+      }
+    }
+  },
+}
+</script>

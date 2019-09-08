@@ -13,6 +13,13 @@ function getTimeString(startTime, endTime){
   return time
 }
 
+function getTimeString(time){
+  return (
+    String(time.getHours()).padStart(2,"0")
+    + ":" + String(time.getMinutes()).padStart(2,"0")
+  )
+}
+
 function getRoomStatus(event,roomCalendarId,selfEmail,startTime,endTime){
   if( startTime.getTime() >= event.endTime.getTime()
   || endTime.getTime() <= event.startTime.getTime()) {

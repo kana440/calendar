@@ -12,19 +12,25 @@ function runGoogleScript(method, payload) {
     createEvent: apiCreateEvent_,
   }
 // todo: parsePayload
-
 //  if(!methods[method]) throw "no methods named " + method
-  return methods[method](payload)
+  try {
+    return methods[method](payload)
+  } catch (e) {
+    throw {
+      response: 'error',
+      massage: JSON.stringify(e),
+    }
+  }
 }
 
 function apiCreateEvent_(payload){
-  const calendarId = payload.calendarEvent
+  const calendarId = payload.calendarId
   const startTime = new Date(payload.startTimeString)
   const endTime = new Date(payload.endTimeString)
   const summary = payload.summary
   const attendees = payload.attendees
 
-  Calendar.Events.insert({
+  const request = {
     start: {
       dateTime: startTime.toISOString()
     },
@@ -33,7 +39,8 @@ function apiCreateEvent_(payload){
     },
     summary: summary,
     attendees: attendees,
-  }, calendarId)
+  }
+  return Calendar.Events.insert(request, calendarId)
 }
 
 function getRooms_(){

@@ -21,24 +21,19 @@
         <tbody>
 
           <template
-            v-for="(room,i) of validRooms"
+            v-for="room of roomsStatus"
           >
             <tr>
               <td class="room">{{room.name}}{{room.caledarId}}</td>
               <td class="cell"></td>
               <template v-for="(period,j) in periods">
-                <template v-if="roomsStatus.length===validRooms.length">
                 <room-list-cell
                   v-bind:key="period"
-                  v-bind:response="roomsStatus[i].response"
-                  v-bind:cells="roomsStatus[i].cells[j]"
-                  @on-click="onClick(roomsStatus[i],period.from)"
+                  v-bind:response="room.response"
+                  v-bind:cells="room.cells[j]"
+                  @on-click="onClick(room,j)"
                   >
                 </room-list-cell>
-                </template>
-                <template v-else>
-                  <td class="cell"></td>
-                </template>
               </template>
               <td class="cell"></td>
             </tr>
@@ -48,117 +43,45 @@
       </v-simple-table>
       <v-dialog
         v-model="createModal"
-        max-width="600px"
+        max-width="400px"
       >
-      <v-form>
-        <v-container>
-
-        <v-card>
-          <v-text-field
-            label="部屋名"
-          ></v-text-field>
-          <v-row>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="開始"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="終了"
-            ></v-text-field>
-          </v-col>
-          </v-row>
-          <v-text-field
-            label="予定名"
-          ></v-text-field>
-        </v-card>
-
-
-      </v-container>
-    </v-form>
+    <room-list-create
+      :name="createProps.name"
+      :start-time="createProps.startTime"
+      :end-time-array="createProps.endTimeArray"
+      :initial-summary="''"
+      @create="confirm($event)"
+      @cancel="createModal=false"
+    ></room-list-create>
     </v-dialog>
   </v-container>
 </template>
 
-<script>
-const RoomListCell = {
-  template: `<td class="cell" :class="status" @click="onClick">{{text}}</td>`,
-  props: {
-    calendarId: String,
-    name: String,
-    startTime: Date,
-    response: String,
-    cells: Object,
-  },
-  methods: {
-    onClick(){
-      console.log('emitoncell')
-      this.$emit('on-click',{
-        calendarId: this.calendarId,
-        startTime: this.startTime,
-      })
-    },
-  },
-  computed: {
-    status(){
-      switch(this.response){
-        case 'has events': {
-          if(this.cells.accepted.length > 0 ){
-            return 'checked'
-          } else if (this.cells.declined.length > 0) {
-            return 'dashed'
-          } else if (this.cells.busy.length > 0) {
-            return 'occupied'
-          }
-        }
-        case 'has no events': {
-          return 'available'
-        }
-        case 'access denied': {
-          return 'dashed'
-        }
-      }
-    },
-    text(){
-      switch(this.response){
-        case 'has events': {
-          if(this.cells.accepted.length > 0 ){
-            return '✔︎'
-          } else if (this.cells.declined.length > 0) {
-            return '✖︎'
-          } else if (this.cells.busy.length > 0) {
-            return '-'
-          } else {
-            return '○'
-          }
-        }
-        case 'has no events': {
-          return '○'
-        }
-        case 'access denied': {
-          return '-'
-        }
-        default: {
-          return this.response
-        }
-      }
-    }
-  },
-}
 
+<script>
 const RoomList = {
   template: '#room-list',
   components: {
     RoomListCell: RoomListCell,
+    RoomListCreate: RoomListCreate,
   },
   data(){
     return {
       times: [9,10,11,12,13,14,15,16,17,18,19],
       createModal: false,
+      createProps: {
+        calendarId: '',
+        name: '',
+        startTime: null,
+        endTimeArray: [],
+        summary: ''
+      },
     }
   },
   methods: {
+    ...Vuex.mapActions([
+      'createEvent',
+    ]),
     status(cell){
       if(cell.accepted.length > 0 ){
         return 'checked'
@@ -179,9 +102,36 @@ const RoomList = {
         return '○'
       }
     },
-    onClick(value){
+    onClick(room,j){
+      const startTime = this.periods[j].from
+      const endTimeArray = [this.periods[j].to]
+      for(let i=j+1; i<this.periods.length; i++){
+        if(this.statusText(room.cells[i])==='○'){
+          endTimeArray.push(this.periods[i].to)
+        } else {
+          break
+        }
+      }
+      this.createProps.calendarId = room.calendarId
+      this.createProps.name = room.name
+      this.createProps.startTime= startTime
+      this.createProps.endTimeArray = endTimeArray
+      this.createProps.summary = ''
       this.createModal = true
-      console.log('clicked:',value)
+    },
+
+    confirm({endTime,summary}){
+      this.createModal=false
+      const payload = {
+        calendarId: this.user.email,
+        startTime: this.createProps.startTime,
+        endTime: endTime,
+        summary: summary,
+        attendees: [{
+          email: this.createProps.calendarId,
+        }]
+      }
+      this.createEvent(payload)
     },
   },
   computed: {
@@ -189,6 +139,9 @@ const RoomList = {
       'validRooms',
       'roomsStatus',
       'periods',
+    ]),
+    ...Vuex.mapState([
+      'user',
     ]),
     tableRoomsStatus(){
       return this.roomsStatus.map(roomStatus=>{

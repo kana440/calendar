@@ -1,0 +1,99 @@
+<template id="room-list-create">
+  <v-card>
+    <v-card-text>
+    <v-container>
+        <v-row>
+          <v-col cols="12" md="12">
+          <v-text-field
+            label="部屋名"
+            :value="name"
+            outlined
+            disabled
+          ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field
+              label="開始"
+              :value="startTimeText"
+              outlined
+              disabled
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-autocomplete
+              label="終了"
+              outlined
+              :items="endTimeItems"
+              v-model="endTime"
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12" md="12">
+          <v-text-field
+            label="予定名"
+            v-model="summary"
+            placeholder="(省略可)"
+            outlined
+          ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="6">
+            <v-btn
+              primary
+              @click="$emit('create',{endTime, summary})">予定を作成</v-btn>
+          </v-col>
+          <v-col cols="6">
+            <v-btn
+              @click="$emit('cancel')"
+            >キャンセル</v-btn>
+          </v-col>
+        </v-row>
+    </v-container>
+    </v-card-text>
+  </v-card>
+</template>
+
+<script>
+
+const RoomListCreate = {
+  template: '#room-list-create',
+  props: {
+    name: String,
+    startTime: Date,
+    endTimeArray: Array,
+    initialSummary: String,
+  },
+
+  data(){
+    return {
+      endTime: this.endTimeArray[this.endTimeArray.length-1],
+      summary: this.initialSummary,
+    }
+  },
+
+  watch: {
+    endTimeArray(){
+      this.endTime = this.endTimeArray[this.endTimeArray.length-1]
+    }
+  },
+
+  computed: {
+    startTimeText(){
+      return getTimeString(this.startTime)
+    },
+    endTimeItems() {
+      return this.endTimeArray.map(time=>{
+        return {
+          text: getTimeString(time),
+          value: time,
+        }
+      })
+    },
+  }
+}
+
+</script>

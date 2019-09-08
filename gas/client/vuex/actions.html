@@ -59,6 +59,20 @@ const api = {
     return result
   },
 
+  async createEvent({
+    calendarId, startTime, endTime, summary, attendees,
+  }) {
+    const payload = {
+      calendarId,
+      startTimeString: startTime.toLocaleString(),
+      endTimeString: endTime.toLocaleString(),
+      summary,
+      attendees,
+    }
+    const result = await this.runGas('createEvent',payload)
+    return result
+  },
+
   async runGas(func,payload) {
     return await new Promise((resolve, reject) =>
       google.script.run
@@ -154,5 +168,13 @@ const actions = {
   onEventSelected({ commit }, { event }) {
     commit('selectEvent', { event })
   },
+
+  async createEvent({ commit, dispatch, state}, payload){
+    commit('updateInitializing',true)
+    const results = await api.createEvent(payload)
+    console.log('afterAPI',results)
+    await dispatch('getRoomsEvents')
+    commit('updateInitializing',false)
+  }
 }
 </script>
