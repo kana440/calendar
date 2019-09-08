@@ -29,11 +29,10 @@
               <template v-for="(period,j) in periods">
                 <template v-if="roomsStatus.length===validRooms.length">
                 <room-list-cell
-                  v-bind:start-time="period.from"
-                  v-bind:calendar-id="room.calendarId"
-                  v-bind:name="room.name"
+                  v-bind:key="period"
                   v-bind:response="roomsStatus[i].response"
                   v-bind:cells="roomsStatus[i].cells[j]"
+                  @on-click="onClick(roomsStatus[i],period.from)"
                   >
                 </room-list-cell>
                 </template>
@@ -47,8 +46,38 @@
 
         </tbody>
       </v-simple-table>
+      <v-dialog
+        v-model="createModal"
+        max-width="600px"
+      >
+      <v-form>
+        <v-container>
+
+        <v-card>
+          <v-text-field
+            label="部屋名"
+          ></v-text-field>
+          <v-row>
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="開始"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="終了"
+            ></v-text-field>
+          </v-col>
+          </v-row>
+          <v-text-field
+            label="予定名"
+          ></v-text-field>
+        </v-card>
+
+
       </v-container>
-    </v-card>
+    </v-form>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -64,7 +93,11 @@ const RoomListCell = {
   },
   methods: {
     onClick(){
-      console.log(this.calendarId, this.startTime, this.name)
+      console.log('emitoncell')
+      this.$emit('on-click',{
+        calendarId: this.calendarId,
+        startTime: this.startTime,
+      })
     },
   },
   computed: {
@@ -122,6 +155,7 @@ const RoomList = {
   data(){
     return {
       times: [9,10,11,12,13,14,15,16,17,18,19],
+      createModal: false,
     }
   },
   methods: {
@@ -146,6 +180,7 @@ const RoomList = {
       }
     },
     onClick(value){
+      this.createModal = true
       console.log('clicked:',value)
     },
   },

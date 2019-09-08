@@ -20,7 +20,9 @@
       </template>
     </v-data-table>
 
-    <v-dialog v-model="selectedEvent">
+
+
+    <v-dialog v-model="selectedEvent" max-width="600px">
       <v-data-table
         v-model="selected"
         :headers="headers2"
@@ -38,8 +40,8 @@
 
         <template #top>
           <v-spacer></v-spacer>
-          <v-btn @click='back'>戻る</v-btn>
-          <v-btn @click='register'>ウォッチ登録</v-btn>
+          <v-btn @click.stop='back'>戻る</v-btn>
+          <v-btn @click.stop='register'>ウォッチ登録</v-btn>
         </template>
         <template #footer>
           <v-spacer></v-spacer>
@@ -56,12 +58,54 @@
 
       </v-data-table>
     </v-dialog>
+    <v-dialog v-model="eventCreateModal">
+        <watch-rooms-event-create
+        >
+      </watch-rooms-event-create>
+    </v-dialog>
+
   </v-container>
+
+</template>
+
+<template id="watch-rooms-event-create">
+  <v-card>
+    <v-text-field
+      v-model="name"
+      label="部屋名"
+    ></v-text-field>
+    <v-text-field
+      v-model="startTime"
+      label="開始"
+    ></v-text-field>
+    <v-text-field
+      v-model="startTime"
+      label="終了"
+    ></v-text-field>
+    <v-text-field
+      v-model="summary"
+      label="予定名"
+    ></v-text-field>
+  </v-card>
 </template>
 
 <script>
+const WatchRoomsEventCreate ={
+  template: '#watch-rooms-event-create',
+  data() {
+    return {
+      name: 'name',
+      startTime: 'xx-xx',
+      endTime: 'xx-xx2',
+      summary: ''
+    }
+  },
+}
 const WatchRooms = {
   template: '#watch-rooms',
+  components: {
+    WatchRoomsEventCreate,
+  },
   computed: {
     ...Vuex.mapState([
       'myEvents',
@@ -203,6 +247,7 @@ const WatchRooms = {
   },
   data() {
     return {
+      eventCreateModal: false,
       selected: [],
       loading: false,
       selectedEvent: null,
@@ -305,7 +350,14 @@ const WatchRooms = {
 
     },
     register() {
+      this.eventCreateModal = true
+      return
+
       if(this.selected.length===0) return
+      if(this.selectedEvent.visibility === 'private'){
+        this.eventCreateModal = true
+        //todo
+      }
       const watchRooms = this.selected.map(room=>{
         return {
           calendarId: room.calendarId,

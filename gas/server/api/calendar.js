@@ -11,6 +11,8 @@ function runGoogleScript(method, payload) {
     addGuests: addGuests_,
     createEvent: apiCreateEvent_,
   }
+// todo: parsePayload
+
 //  if(!methods[method]) throw "no methods named " + method
   return methods[method](payload)
 }
@@ -306,7 +308,7 @@ function _eventGetter_(item) {
     location: item.location,//Optional
     description: item.description,//Optional
     organizer: item.organizer,//Optional
-    visibility : item.visibility,//Optional,'private',undefined('default'),'public','confidential'
+    visibility : item.visibility == null ? 'default' : 'private',//Optional,'private',undefined('default'),'public','confidential'
     htmlLink: item.htmlLink,
     attendees: item.attendees,
     status: item.status,

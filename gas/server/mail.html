@@ -1,0 +1,9 @@
+<font face="arial, helvetica, sans-serif">会議室を取得しました。<br>
+<br>
+予定名:<a href="<?=htmlLink?>" target="_blank"><?=summary?></a><br>
+時間: <?=startDate?> <?=startTime?>-<?=endTime?>
+<br>
+<br>
+<? for (var i =0; i<rooms.length; i++) { ?>
+会議室名: <?=rooms[i].name?>
+<? } ?>

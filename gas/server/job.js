@@ -7,6 +7,16 @@ function roomCheck() {
       status: '01_ウォッチ中',
     }
   })
+  
+  if(watchList.length===0){
+    const triggers = ScriptApp.getProjectTriggers()
+    if(triggers.length>0){
+      triggers.forEach(function(trigger){
+        ScriptApp.deleteTrigger(trigger)
+      })
+    }
+    return
+  }
 
   watchList.forEach(function (record) {
     // 最新の予定を取得する
@@ -37,7 +47,24 @@ function roomCheck() {
         io.setWatchList(record)
         return
       }
-
+      
+      //Freebusy一括問い合わせ
+      const freebusy = Calendar.Freebusy.query({
+        timeMin: record.startTime.toISOString(),
+        timeMax: record.endTime.toISOString(),
+        items: record.watchRooms.map(function(room){return {id:room.calendarId}}),
+      })
+      
+      //開いた会議室を確認
+      const roomsAvailable = record.watchRooms.filter(function(room) {
+        const result = freebusy.calendars[room.calendarId]
+        if(!result.errors && result.busy.length === 0) {
+          return true
+        } else {
+          return false
+        }
+      })
+/*
       // ウォッチ対象の会議室の予定を確認し、空いている会議室を取得する
       const roomsAvailable = record.watchRooms.filter(function (room) {
         const result = getCalendarEvents({
@@ -64,114 +91,44 @@ function roomCheck() {
             return false
           }
         }
-
       })
-
+*/
       // 空いていれば、会議室を追加する
       if (roomsAvailable.length) {
-        const roomsAdded = roomsAvailable.map(function (room) {
-          return addGuests({
-            calendarId: subscriber,
-            eventId: record.eventId,
-            guests: roomsAvailable.map(function(room){return {email: room.calendarId}}),
-          })
+        if(!record.guests) record.guests=[]
+        const myguests = record.guests.concat(roomsAvailable.map(function(room){return {email: room.calendarId}}))
+
+        const response = runGoogleScript('addGuests', {
+          calendarId: subscriber,
+          eventId: record.eventId,
+          guests: myguests,
         })
-        //ToDo: メール送付
-/*
-        const messageAdded = createAddedMessage(record, roomsAdded)
-        MailApp.sendEmail(messageAdded)
-*/
-        //空き取得済にして帰る
+        
+        //メール文作成・送付
+        const template = HtmlService.createTemplateFromFile('server/mail')
+        template.summary = record.summary
+        template.htmlLink = record.htmlLink
+        template.startDate = Utilities.formatDate(record.startTime, 'JST', 'MM/dd')
+        template.startTime = Utilities.formatDate(record.startTime, 'JST', 'HH:mm')
+        template.endTime= Utilities.formatDate(record.endTime, 'JST', 'HH:mm')
+        template.rooms = roomsAvailable
+        
+        const htmlBody = template.evaluate().getContent()
+        const message = {
+          to: record.subscriber,
+          name: '会議室ウォッチ',
+          subject: '[自動送信]会議室取得連絡',
+          htmlBody: htmlBody,
+          options: {
+            noReply: true,
+          },
+        }
+        MailApp.sendEmail(message)
+
+        //空き取得済に
         record.status = '05_空き取得済'
         io.setWatchList(record)
+      }
     }
-    }
   })
-}
-
-function createAvailableMessage(record, roomsAvailable) {
-  const htmlSummar = '<font face="arial, helvetica, sans-serif">'
-    + '会議室が解放されました。<br><br>'
-    + '予定名:<a href="{{htmlLink}}" target="_blank">'
-    + '{{summary}}</a><br>'
-    + '時間: {{startDate}} {{startTime}}-{{endTime}}'
-
-  const htmlLine = '<br>会議室名: {{room.name}}<b>'
-   + '（<a href="{{baseURL}}#/add/{{eid}}/{{roomId}}">'
-   + '★クリックして今すぐ取得★</a>）</b>'
-
-  const header = htmlSummar
-    .replace('{{htmlLink}}', record.event.htmlLink)
-    .replace('{{summary}}', record.event.summary)
-    .replace('{{startDate}}',
-      Utilities.formatDate(record.event.startTime, 'JST', 'MM/dd'))
-    .replace('{{startTime}}',
-      Utilities.formatDate(record.event.startTime, 'JST', 'HH:mm'))
-    .replace('{{endTime}}',
-      Utilities.formatDate(record.event.endTime, 'JST', 'HH:mm'))
-
-  const details = roomsAvailable.map(function (room) {
-    return htmlLine
-      .replace('{{room.name}}', room.name)
-      .replace('{{baseURL}}', ScriptApp.getService().getUrl())
-      .replace('{{eid}}', Utilities.base64Encode(this.eventId))
-      .replace('{{roomId}}', Utilities.base64Encode(room.id))
-  }, {
-    eventId: record.event.eventId,
-    htmlLine: htmlLine,
-  })
-
-  const message = {
-    to: record.subscriber,
-    name: '会議室ウォッチ',
-    subject: '[自動送信]会議室解放連絡',
-    htmlBody: header + details.join(''),
-    options: {
-      noReply: true,
-      // replyTo: 'foo@bar.com'
-    },
-  }
-  return message
-}
-
-function createAddedMessage(record, roomsAdded) {
-  const htmlSummar = '<font face="arial, helvetica, sans-serif">'
-    + '会議室を取得しました。<br><br>'
-    + '予定名:<a href="{{htmlLink}}" target="_blank">'
-    + '{{summary}}</a><br>'
-    + '時間: {{startDate}} {{startTime}}-{{endTime}}'
-
-  const htmlLine = '<br>会議室名: {{room.name}} ステータス:<b>'
-  + '{{room.statusCode}}</b>'
-
-  const header = htmlSummar
-    .replace('{{htmlLink}}', record.event.htmlLink)
-    .replace('{{summary}}', record.event.summary)
-    .replace('{{startDate}}',
-      Utilities.formatDate(record.event.startTime, 'JST', 'MM/dd'))
-    .replace('{{startTime}}',
-      Utilities.formatDate(record.event.startTime, 'JST', 'HH:mm'))
-    .replace('{{endTime}}',
-      Utilities.formatDate(record.event.endTime, 'JST', 'HH:mm'))
-
-  const details = roomsAdded.map(function (room) {
-    return htmlLine
-      .replace('{{room.name}}', room.name)
-      .replace('{{room.statusCode}}', room.statusCode)
-  }, {
-    eventId: record.eventId,
-    htmlLine: htmlLine,
-  })
-
-  const message = {
-    to: record.subscriber,
-    name: '会議室ウォッチ',
-    subject: '[自動送信]会議室取得連絡',
-    htmlBody: header + details.join(''),
-    options: {
-      noReply: true,
-      // replyTo: 'foo@bar.com'
-    },
-  }
-  return message
 }
