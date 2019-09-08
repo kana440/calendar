@@ -73,6 +73,10 @@ const api = {
     return result
   },
 
+  async setTrigger(){
+    return this.runGas('setTrigger')
+  },
+
   async runGas(func,payload) {
     return await new Promise((resolve, reject) =>
       google.script.run
@@ -175,6 +179,10 @@ const actions = {
     console.log('afterAPI',results)
     await dispatch('getRoomsEvents')
     commit('updateInitializing',false)
-  }
+  },
+
+  async setTrigger(){
+    await api.setTrigger()
+  },
 }
 </script>

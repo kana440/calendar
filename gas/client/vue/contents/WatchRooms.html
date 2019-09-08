@@ -1,7 +1,7 @@
 <template id="watch-rooms">
   <v-container>
     <v-data-table
-      class="elevation-5"
+      class="elevation-1"
       :headers="headers"
       :items="tableStep1"
       :loading="isLoading"
@@ -12,6 +12,10 @@
       items-per-page="999"
     >
       <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
+      <template #item.watch = {value,item}>
+        <span>alarm</span>
+      </template>
+
       <template #no-data>
         予定がありません
       </template>
@@ -20,9 +24,7 @@
       </template>
     </v-data-table>
 
-
-
-    <v-dialog v-model="selectedEvent" max-width="600px">
+    <v-dialog :value="selectedEvent" max-width="800px" @click:outside="back">
       <v-data-table
         v-model="selected"
         :headers="headers2"
@@ -37,16 +39,15 @@
         items-per-page="999"
         @click:row="switchSelect($event)"
       >
-
         <template #top>
           <v-spacer></v-spacer>
-          <v-btn @click.stop='back'>戻る</v-btn>
-          <v-btn @click.stop='register'>ウォッチ登録</v-btn>
+          <v-btn class="ma-4" @click.stop='back'>戻る</v-btn>
+          <v-btn class="ma-4"  :disabled="selected.length===0" @click.stop='register'>ウォッチ登録</v-btn>
         </template>
         <template #footer>
           <v-spacer></v-spacer>
-          <v-btn @click='back'>戻る</v-btn>
-          <v-btn @click='register'>ウォッチ登録</v-btn>
+          <v-btn class="ma-4" @click='back'>戻る</v-btn>
+          <v-btn class="ma-4"  :disabled="selected.length===0" @click='register'>ウォッチ登録</v-btn>
         </template>
         <template #item.status = {value,item}>
           <v-btn
@@ -55,7 +56,6 @@
           >今すぐ取得</v-btn>
           <span v-else> {{value}} </span>
         </template>
-
       </v-data-table>
     </v-dialog>
     <v-dialog v-model="eventCreateModal">
@@ -108,10 +108,8 @@ const WatchRooms = {
   },
   computed: {
     ...Vuex.mapState([
-      'myEvents',
       'roomsEvents',
       'user',
-      'selectedEvent',
       'isLoading',
       'selectedDate',
     ]),
@@ -119,6 +117,7 @@ const WatchRooms = {
       'validRooms',
       'roomsEventsSelectedDate',
       'calendarEventsSelectedDate',
+      'myWatchList',
     ]),
     step(){
       if(!this.selectedEvent) return 1
@@ -140,7 +139,7 @@ const WatchRooms = {
               location: item.location,
               startTime: item.startTime,
               endTime: item.endTime,
-              monitored: true,
+              watch: this.myWatchList.find(watch=>watch.eventId===item.eventId),
               event: item,
             }
           })
@@ -180,6 +179,7 @@ const WatchRooms = {
         switch(roomEvents.response){
           case 'has events': {
             const events = roomEvents.items.filter(event=>{
+              console.log('step2_selectedEvent',this.selectedEvent)
               const status = getRoomStatus(
                 event,
                 roomEvents.calendarId,
@@ -243,6 +243,11 @@ const WatchRooms = {
         }
       })
       return results
+    },
+  },
+  watch: {
+    selectedEvent(){
+      this.selected = this.tableStep2.map(item=>item)
     },
   },
   data() {
@@ -327,6 +332,8 @@ const WatchRooms = {
     ...Vuex.mapActions([
       'updateSelectedDate',
       'setWatchList',
+      'getWatchList',
+      'setTrigger',
     ]),
     switchSelect(event){
       console.log(this.selected)
@@ -339,7 +346,6 @@ const WatchRooms = {
       }
     },
     selectEvent(value){
-      this.step = 2
       this.updateSelectedEvent(value.event)
       this.selectedEvent = value
     },
@@ -350,21 +356,12 @@ const WatchRooms = {
 
     },
     register() {
-      this.eventCreateModal = true
-      return
-
-      if(this.selected.length===0) return
-      if(this.selectedEvent.visibility === 'private'){
-        this.eventCreateModal = true
-        //todo
-      }
       const watchRooms = this.selected.map(room=>{
         return {
           calendarId: room.calendarId,
           name: room.name,
         }
       })
-
       const record ={
         subscriber: this.user.email,
         status: '01_ウォッチ中',
@@ -375,6 +372,9 @@ const WatchRooms = {
         watchRooms: watchRooms,
       }
       this.setWatchList(record)
+      this.setTrigger()
+      this.selectedEvent = null
+      this.getWatchList()
     }
   },
 }

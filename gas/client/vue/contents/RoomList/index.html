@@ -82,36 +82,41 @@ const RoomList = {
     ...Vuex.mapActions([
       'createEvent',
     ]),
-    status(cell){
-      if(cell.accepted.length > 0 ){
-        return 'checked'
-      } else if (cell.declined.length > 0) {
-        return 'dashed'
-      } else if (cell.busy.length > 0) {
-        return 'occupied'
-      }
-    },
-    statusText(cell){
-      if(cell.accepted.length > 0 ){
-        return '✔︎'
-      } else if (cell.declined.length > 0) {
-        return '✖︎'
-      } else if (cell.busy.length > 0) {
-        return '-'
-      } else {
-        return '○'
+    statusText(response, cell){
+      switch(response){
+        case 'has events': {
+          if(cell.accepted.length > 0 ){
+            return '✔︎'
+          } else if (cell.declined.length > 0) {
+            return '✖︎'
+          } else if (cell.busy.length > 0) {
+            return '-'
+          } else {
+            return '○'
+          }
+        }
+        case 'has no events': {
+          return '○'
+        }
+        case 'access denied': {
+          return '-'
+        }
+        default: {
+          return response
+        }
       }
     },
     onClick(room,j){
       const startTime = this.periods[j].from
-      const endTimeArray = [this.periods[j].to]
-      for(let i=j+1; i<this.periods.length; i++){
-        if(this.statusText(room.cells[i])==='○'){
+      const endTimeArray = []
+      for(let i=j; i<this.periods.length; i++){
+        if(this.statusText(room.response,room.cells[i])==='○'){
           endTimeArray.push(this.periods[i].to)
         } else {
           break
         }
       }
+      if(endTimeArray.length===0)return
       this.createProps.calendarId = room.calendarId
       this.createProps.name = room.name
       this.createProps.startTime= startTime

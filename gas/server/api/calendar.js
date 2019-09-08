@@ -122,12 +122,12 @@ function setWatchList_(payload) {
 }
 
 function setTrigger_(){
-  ScriptApp.getProjectTriggers().filter(function(trigger){
+  const triggers = ScriptApp.getProjectTriggers().filter(function(trigger){
     return trigger.getHandlerFunction() === 'roomCheck'
-  }).forEach(function(trigger){
-    ScriptApp.deleteTrigger(trigger)
   })
-  ScriptApp.newTrigger('roomCheck').timeBased().everyMinutes(5).create()
+  if(triggers.length === 0 ){
+    ScriptApp.newTrigger('roomCheck').timeBased().everyMinutes(5).create()
+  }
 }
 
 
