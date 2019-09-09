@@ -12,7 +12,7 @@
       >
         <thead>
           <tr>
-            <th>部屋</th>
+            <th>時間</th>
             <template v-for="time of times">
               <th colspan="2" style="text-align: center">{{time}}</th>
             </template>
@@ -197,16 +197,19 @@ const RoomList = {
 .data th {
   padding : 0 0;
   text-align : center;
+  border-bottom: 1px #bbbbbb solid;
 }
 
 .data td.room {
   min-width: 5rem;
   text-align : left;
+  border-bottom : 1px #bbbbbb solid;
 }
 
 .data td {
   padding : 0 0;
   text-align : center;
+  border-bottom : 1px #bbbbbb solid;
 }
 
 .checked {

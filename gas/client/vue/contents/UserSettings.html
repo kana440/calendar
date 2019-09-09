@@ -32,6 +32,11 @@
       <v-spacer></v-spacer>
       <v-btn
         color="blue darken-1" text
+        @click="cancel"
+        :disabled="!this.user.floor"
+      >cancel</v-btn>
+      <v-btn
+        color="blue darken-1" text
         @click="save"
         :disabled="false"
       >Save</v-btn>
@@ -65,6 +70,7 @@ const UserSettings = {
   methods: {
     ...Vuex.mapMutations([
       'patchUserSettings',
+      'updateNewUser'
     ]),
     ...Vuex.mapActions([
       'setUserSettings',
@@ -76,6 +82,10 @@ const UserSettings = {
         })
         this.setUserSettings()
     },
+    cancel(){
+      this.updateNewUser(false)
+      this.selectedFloor=this.user.floor
+    }
   }
 }
 </script>

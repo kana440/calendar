@@ -55,8 +55,8 @@
           <v-btn
             v-if="value==='available'"
             @click.stop="console.log('clicked:'+item.calendarId)"
-          >今すぐ取得</v-btn>
-          <span v-else> {{value}} </span>
+          >今すぐ取得(作成中)</v-btn>
+          <span v-else > {{statusText[value]}} </span>
         </template>
       </v-data-table>
     </v-dialog>
@@ -136,7 +136,7 @@ const WatchRooms = {
             // 変換を指定
             return {
               eventId: item.eventId,
-              time: getTimeString(item.startTime, item.endTime),
+              time: getStartEndTimeString(item.startTime, item.endTime),
               summary: item.summary,
               location: item.location,
               startTime: item.startTime,
@@ -202,7 +202,7 @@ const WatchRooms = {
                   event.organizer.displayName : event.organizer.email
               }
               return {
-                time: getTimeString(event.startTime,event.endTime),
+                time: getStartEndTimeString(event.startTime,event.endTime),
                 summary: event.summary,
                 organizer: organizer,
               }
@@ -239,7 +239,7 @@ const WatchRooms = {
             return {
               calendarId: room.calendarId,
               name: room.name,
-              status: 'noAuth',
+              status: 'z_noAuth',
             }
           }
         }
@@ -258,6 +258,12 @@ const WatchRooms = {
       selected: [],
       loading: false,
       selectedEvent: null,
+
+      statusText: {
+        z_noAuth: '利用権限なし',
+        occupied: '先約あり',
+        available: '○',
+      },
 
 
       headers: [{
@@ -330,6 +336,7 @@ const WatchRooms = {
   methods: {
     ...Vuex.mapMutations([
       'updateSelectedEvent',
+      'updateInitializing',
     ]),
     ...Vuex.mapActions([
       'updateSelectedDate',
@@ -357,7 +364,7 @@ const WatchRooms = {
       this.selectedEvent = null
 
     },
-    register() {
+    async register() {
       const watchRooms = this.selected.map(room=>{
         return {
           calendarId: room.calendarId,
@@ -373,10 +380,12 @@ const WatchRooms = {
         summary: this.selectedEvent.summary,
         watchRooms: watchRooms,
       }
-      this.setWatchList(record)
-      this.setTrigger()
       this.selectedEvent = null
-      this.getWatchList()
+      this.updateInitializing(true)
+      await this.setWatchList(record)
+      await this.setTrigger()
+      await this.getWatchList()
+      this.updateInitializing(false)
     }
   },
 }

@@ -91,7 +91,7 @@ const api = {
 }
 
 const actions = {
-  async initialize({commit, dispatch, getters}){
+  async initialize({commit, dispatch, getters, state}){
     const [rooms, userSettings] = await Promise.all([
       api.getRooms(),
       api.getUserSettings(),
@@ -176,8 +176,7 @@ const actions = {
   async createEvent({ commit, dispatch, state}, payload){
     commit('updateInitializing',true)
     const results = await api.createEvent(payload)
-    console.log('afterAPI',results)
-    await dispatch('getRoomsEvents')
+    await dispatch('updateSelectedDate',state.selectedDate)
     commit('updateInitializing',false)
   },
 

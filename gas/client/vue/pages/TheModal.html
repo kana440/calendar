@@ -1,6 +1,6 @@
 <template id="the-modal">
   <v-layout row justify-center>
-    <v-dialog v-model="dialog" persistent max-width="400px">
+    <v-dialog v-model="dialog" :persistent=!this.user.floor max-width="400px">
       <user-settings></user-settings>
     </v-dialog>
   </v-layout>
@@ -13,11 +13,19 @@ const TheModal = {
     UserSettings: UserSettings,
   },
   computed: {
+    ...Vuex.mapState([
+      'user',
+    ]),
     loading() {
       return this.$store.state.isLoading
     },
-    dialog() {
-      return this.$store.state.newUser
+    dialog: {
+      get() {
+        return this.$store.state.newUser
+      },
+      set(value){
+        this.$store.commit('updateNewUser', value)
+      },
     },
   },
   methods: {

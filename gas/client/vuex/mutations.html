@@ -8,9 +8,15 @@ const mutations = {
     state.user = payload
   },
   patchUserSettings(state, payload){
-    for(let i in payload){
-      state.user[i] = payload[i]
+    //todo watch properties
+    const update = {}
+    for(let i in state.user){
+      update[i] = state.user[i]
     }
+    for(let i in payload){
+      update[i] = payload[i]
+    }
+    state.user=update
   },
   updateNewUser(state, payload){
     state.newUser = payload

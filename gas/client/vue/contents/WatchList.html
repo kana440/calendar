@@ -57,7 +57,7 @@
       <v-card>
         <v-card-title
           class="headline">
-          ウォッチを止めますか？</v-card-title>
+          ウォッチを止めますか？(作成中)</v-card-title>
         <v-card-text>
           XX
         </v-card-text>
@@ -131,7 +131,7 @@
       tableWatchList(){
         return this.myWatchList.map(record=>({
           eventId: record.eventId,
-          time: getTimeString(record.startTime, record.endTime),
+          time: getStartEndTimeString(record.startTime, record.endTime),
           summary: record.summary,
           watchRooms: record.watchRooms,
         })
