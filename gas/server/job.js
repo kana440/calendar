@@ -7,7 +7,7 @@ function roomCheck() {
       status: '01_ウォッチ中',
     }
   })
-  
+
   if(watchList.length===0){
     const triggers = ScriptApp.getProjectTriggers()
     if(triggers.length>0){
@@ -25,8 +25,11 @@ function roomCheck() {
       eventId: record.eventId,
     })
 
+
     if(result.response === 'success') {
       const event = result.event
+
+      record.summary = event.summary
       // ToDo: 予定の時間が変更されていたら時間を変更してDBもアップデート
       if(event.startTime.getTime() !== record.startTime.getTime()
         || event.endTime.getTime() !== record.endTime.getTime()
@@ -47,14 +50,14 @@ function roomCheck() {
         io.setWatchList(record)
         return
       }
-      
+
       //Freebusy一括問い合わせ
       const freebusy = Calendar.Freebusy.query({
         timeMin: record.startTime.toISOString(),
         timeMax: record.endTime.toISOString(),
         items: record.watchRooms.map(function(room){return {id:room.calendarId}}),
       })
-      
+
       //開いた会議室を確認
       const roomsAvailable = record.watchRooms.filter(function(room) {
         const result = freebusy.calendars[room.calendarId]
@@ -95,24 +98,33 @@ function roomCheck() {
 */
       // 空いていれば、会議室を追加する
       if (roomsAvailable.length) {
-        if(!record.guests) record.guests=[]
-        const myguests = record.guests.concat(roomsAvailable.map(function(room){return {email: room.calendarId}}))
+        if(!event.attendees) event.attendees=[]
+        const myguests = event.attendees.concat(roomsAvailable.map(function(room){return {email: room.calendarId}}))
+
+        // 会議室名を取得　to do
+        const rooms = roomsAvailable.map(function(room){
+          const temp = Calendar.Calendars.get(room.calendarId)
+          return {
+            name: temp.summary ? temp.summary : room.name
+          }
+        })
 
         const response = runGoogleScript('addGuests', {
           calendarId: subscriber,
           eventId: record.eventId,
           guests: myguests,
         })
-        
+
+
         //メール文作成・送付
         const template = HtmlService.createTemplateFromFile('server/mail')
-        template.summary = record.summary
-        template.htmlLink = record.htmlLink
+        template.summary = event.summary
+        template.htmlLink = event.htmlLink
         template.startDate = Utilities.formatDate(record.startTime, 'JST', 'MM/dd')
         template.startTime = Utilities.formatDate(record.startTime, 'JST', 'HH:mm')
         template.endTime= Utilities.formatDate(record.endTime, 'JST', 'HH:mm')
-        template.rooms = roomsAvailable
-        
+        template.rooms = rooms
+
         const htmlBody = template.evaluate().getContent()
         const message = {
           to: record.subscriber,

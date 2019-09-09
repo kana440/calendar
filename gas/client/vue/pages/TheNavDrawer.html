@@ -2,7 +2,7 @@
   <v-navigation-drawer
     app
     clipped
-    :value="drawer"
+    v-model="drawer"
     mobile-break-point="960"
   >
   <v-list>
@@ -29,8 +29,13 @@
 const TheNavDrawer = {
   template: '#the-nav-drawer',
   computed: {
-    drawer() {
-      return this.$store.state.drawer
+    drawer:{
+      get(){
+        return this.$store.state.drawer
+      },
+      set(value){
+        this.$store.commit('setDrawer',value)
+      },
     },
     user() {
       return this.$store.state.user

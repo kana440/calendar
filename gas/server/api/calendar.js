@@ -210,7 +210,7 @@ function addGuests_(payload) {
     sendNotifications: false
   }
   // 会議室追加
-  Calendar.Events.patch(body, calendarId, eventId, options)
+  return Calendar.Events.patch(body, calendarId, eventId, options)
 }
 
 function addGuest(payload) {

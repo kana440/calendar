@@ -48,6 +48,9 @@ const mutations = {
   switchDrawer(state, payload) {
     state.drawer = !state.drawer
   },
+  setDrawer(state, payload) {
+    state.drawer = payload
+  },
   updateSelectedDate(state, payload) {
     if(state.selectedDate !== payload) state.selectedEvent = null
     state.selectedDate = payload
