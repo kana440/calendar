@@ -54,8 +54,8 @@
         <template #item.status = {value,item}>
           <v-btn
             v-if="value==='available'"
-            @click.stop="console.log('clicked:'+item.calendarId)"
-          >今すぐ取得(作成中)</v-btn>
+            @click.stop="addRoom(item.calendarId)"
+          >今すぐ取得</v-btn>
           <span v-else > {{statusText[value]}} </span>
         </template>
       </v-data-table>
@@ -143,6 +143,7 @@ const WatchRooms = {
               endTime: item.endTime,
               watch: this.myWatchList.find(watch=>watch.eventId===item.eventId),
               event: item,
+              attendees: item.attendees,
             }
           })
 
@@ -226,7 +227,6 @@ const WatchRooms = {
               }
             }
           }
-          console.log('noEvent room',room)
           case 'has no events': {
             return {
               calendarId: room.calendarId,
@@ -234,7 +234,6 @@ const WatchRooms = {
               status: 'available',
             }
           }
-          console.log('denied room',room)
           case 'access denied':{
             return {
               calendarId: room.calendarId,
@@ -343,11 +342,10 @@ const WatchRooms = {
       'setWatchList',
       'getWatchList',
       'setTrigger',
+      'addGuests'
     ]),
     switchSelect(event){
-      console.log(this.selected)
       const index = this.selected.findIndex(item=>item.calendarId === event.calendarId)
-      console.log('index:',index)
       if(index===-1) {
         this.selected.push(event)
       } else {
@@ -357,12 +355,26 @@ const WatchRooms = {
     selectEvent(value){
       this.updateSelectedEvent(value.event)
       this.selectedEvent = value
+      console.log(this.selectedEvent)
     },
     updateSelected(value){
     },
     back() {
       this.selectedEvent = null
 
+    },
+    async addRoom(calendarId) {
+      const event = this.selectedEvent
+      console.log('event', event)
+      if(!event.attendees) event.attendees=[]
+      event.attendees.push({email:calendarId})
+      console.log('attendees', event.attendees)
+      this.addGuests({
+        calendarId: this.user.email,
+        eventId: event.eventId,
+        guests: event.attendees
+      })
+      this.selectedEvent = null
     },
     async register() {
       const watchRooms = this.selected.map(room=>{

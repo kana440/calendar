@@ -77,6 +77,10 @@ const api = {
     return this.runGas('setTrigger')
   },
 
+  async addGuests(payload){
+    return this.runGas('addGuests',payload)
+  },
+
   async runGas(func,payload) {
     return await new Promise((resolve, reject) =>
       google.script.run
@@ -182,6 +186,13 @@ const actions = {
 
   async setTrigger(){
     await api.setTrigger()
+  },
+
+  async addGuests({ commit, dispatch, state}, payload){
+    commit('updateInitializing',true)
+    const results = await api.addGuests(payload)
+    await dispatch('updateSelectedDate',state.selectedDate)
+    commit('updateInitializing',false)
   },
 }
 </script>
