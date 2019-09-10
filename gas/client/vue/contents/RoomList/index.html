@@ -12,9 +12,9 @@
       >
         <thead>
           <tr>
-            <th>時間</th>
+            <th colspan="1" class="indigo darken-4">room</th>
             <template v-for="time of times">
-              <th colspan="2" style="text-align: center">{{time}}</th>
+              <th colspan="2" class="indigo darken-4 subtitle-1 white--text" style="text-align: center">{{time}}</th>
             </template>
           </tr>
         </thead>
@@ -35,7 +35,7 @@
                   >
                 </room-list-cell>
               </template>
-              <td class="cell"></td>
+              <td class='nodata'></td>
             </tr>
           </template>
 
@@ -197,19 +197,18 @@ const RoomList = {
 .data th {
   padding : 0 0;
   text-align : center;
-  border-bottom: 1px #bbbbbb solid;
+  border-bottom: 1px #efefef solid;
 }
 
 .data td.room {
   min-width: 5rem;
   text-align : left;
-  border-bottom : 1px #bbbbbb solid;
+  border-bottom : 1px #efefef solid;
 }
 
 .data td {
   padding : 0 0;
   text-align : center;
-  border-bottom : 1px #bbbbbb solid;
 }
 
 .checked {
@@ -232,8 +231,20 @@ const RoomList = {
   max-width: 2rem;
 }
 
+.data td.cell {
+  min-width: 2rem;
+  max-width: 2rem;
+  border-bottom : 1px #efefef solid;
+}
+
+.data td.nodata {
+  border-left: 1px #222222 solid;
+  min-width: 2rem;
+  max-width: 2rem;
+}
+
 .data td.cell:nth-child(odd){
-  border-left: 1px #dfdfdf solid;
+  border-left: 1px #afafbf solid;
   border-right: 1px #efefef dashed;
 }
 
@@ -241,7 +252,7 @@ const RoomList = {
   border-left: 1px #222222 solid;
 }
 
-.data td.cell.data:nth-child(23) {
+.data td.cell.data:nth-child(21) {
   border-left: 1px #222222 solid;
   border-right: 0px;
 }
