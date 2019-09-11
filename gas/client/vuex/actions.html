@@ -196,5 +196,9 @@ const actions = {
     await dispatch('updateSelectedDate',state.selectedDate)
     commit('updateInitializing',false)
   },
+
+  async deleteWatch({ commit, dispatch, state}, payload){
+    console.log(payload)
+  },
 }
 </script>
