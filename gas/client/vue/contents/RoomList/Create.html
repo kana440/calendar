@@ -1,5 +1,8 @@
 <template id="room-list-create">
   <v-card>
+    <v-card-title color="primary">
+      会議室確保
+    </v-card-title>
     <v-card-text>
     <v-container>
         <v-row>
@@ -41,15 +44,15 @@
           </v-col>
         </v-row>
         <v-row>
-          <v-col cols="6">
-            <v-btn
-              primary
-              @click="$emit('create',{endTime, summary})">予定を作成</v-btn>
-          </v-col>
-          <v-col cols="6">
-            <v-btn
+          <v-col cols="12" sm="6">
+            <v-btn  width="100%"
               @click="$emit('cancel')"
             >キャンセル</v-btn>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-btn
+              color="primary" width="100%"
+              @click="$emit('create',{endTime, summary})"><v-icon>edit</v-icon>予定を作成</v-btn>
           </v-col>
         </v-row>
     </v-container>

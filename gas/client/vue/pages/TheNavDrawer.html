@@ -11,7 +11,7 @@
         <v-list-item @click="navigateTo(item)" :key="item.text"
         :class="selectedClass(item.link)">
           <v-list-item-action>
-            <v-icon :color="selectedIconClass(item.link)">{{ item.icon }}</v-icon>
+              <v-icon :color="selectedIconClass(item.link)">{{ item.icon }}</v-icon>
           </v-list-item-action>
           <v-list-item-content>
             <v-list-item-title>

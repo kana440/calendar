@@ -82,6 +82,7 @@ const api = {
   },
 
   async runGas(func,payload) {
+    // api 負荷軽減
     return await new Promise((resolve, reject) =>
       google.script.run
         .withSuccessHandler(resolve)
@@ -124,7 +125,8 @@ const actions = {
 
   async getRoomsEvents({commit, state, getters}) {
     const results = await Promise.all(
-      getters.validRooms.map(async room => {
+      getters.validRooms.map(async (room,i) => {
+        await new Promise((resolve,reject)=>setTimeout(()=>resolve(),80*i))
         const result = await api.getCalendarEvents({
           calendarId: room.calendarId,
           selectedDate: state.selectedDate,

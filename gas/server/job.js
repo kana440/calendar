@@ -7,6 +7,9 @@ function roomCheck() {
       status: '01_ウォッチ中',
     }
   })
+  const user = {
+    overMinutes: 5
+  }
 
   if(watchList.length===0){
     const triggers = ScriptApp.getProjectTriggers()
@@ -45,7 +48,7 @@ function roomCheck() {
         return
       }
       // 時間ぎれでないか更新する
-      if (record.endTime.getTime() < (new Date()).getTime()) {
+      if (record.startTime.getTime() + user.overMinutes * 60 * 1000 < (new Date()).getTime()) {
         record.status = '03_時間切れ'
         io.setWatchList(record)
         return
