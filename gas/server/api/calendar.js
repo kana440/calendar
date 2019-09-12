@@ -10,6 +10,7 @@ function runGoogleScript(method, payload) {
     setTrigger: setTrigger_,
     addGuests: addGuests_,
     createEvent: apiCreateEvent_,
+    deleteWatch: deleteWatch_,
   }
 // todo: parsePayload
 //  if(!methods[method]) throw "no methods named " + method
@@ -292,6 +293,29 @@ function addGuest(payload) {
   } else {
     return 'NG-event not add authorized'
   }
+}
+
+function deleteWatch_(payload){
+  const subscriber = payload.subscriber
+  const eventId = payload.eventId
+  if(!subscriber || !eventId){
+    throw ('arg subscriber and eventId needed')
+  }
+
+  const io = constants.getIo()
+  const records = io.getWatchList({
+    filter: {
+      subscriber: subscriber,
+      eventId: eventId,
+      status: '01_ウォッチ中',
+    }
+  })
+  if(records.length===0) return
+  if(records.length>1) throw 'multiple keys'
+  
+  const record = records[0]
+  record.status="09_キャンセル"
+  return io.setWatchList(record)
 }
 
 // 汎用的に呼ばれるサブルーチン・コールバック関数等を定義

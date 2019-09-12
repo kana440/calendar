@@ -81,6 +81,10 @@ const api = {
     return this.runGas('addGuests',payload)
   },
 
+  async deleteWatch(payload){
+    return this.runGas('deleteWatch',payload)
+  },
+
   async runGas(func,payload) {
     // api 負荷軽減
     return await new Promise((resolve, reject) =>
@@ -198,7 +202,8 @@ const actions = {
   },
 
   async deleteWatch({ commit, dispatch, state}, payload){
-    console.log(payload)
+    const result = await api.deleteWatch(payload)
+    dispatch('getWatchList')
   },
 }
 </script>
