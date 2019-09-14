@@ -3,20 +3,28 @@
     <v-card>
       <v-card-title>
         空き会議室一覧
+        <v-progress-circular
+          v-if="false"
+          class = "ml-4"
+          indeterminate
+          color=primary
+        ></v-progress-circular>
+
       </v-card-title>
       <v-container>
+
       <v-simple-table
         dense
         fixed-header
         class = "data"
       >
         <thead>
-          <tr>
-            <th colspan="1" class="indigo darken-4">room</th>
+            <th colspan="2">
+              room
+            </th>
             <template v-for="time of times">
-              <th colspan="2" class="indigo darken-4 subtitle-1 white--text" style="text-align: center">{{time}}</th>
+              <th colspan="2" class="subtitle-1 indigo--text" style="text-align: center">{{time}}</th>
             </template>
-          </tr>
         </thead>
         <tbody>
 
