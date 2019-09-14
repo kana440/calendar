@@ -84,7 +84,11 @@ function getIoSpreadsheet() {
           }
           switch(headerType[i]){
             case 'Array': {
-              obj[header[i]] = JSON.parse(line[i])
+              try{
+                obj[header[i]] = JSON.parse(line[i])
+              } catch (e) {
+                obj[header[i]] = []
+              }
               return
             }
             default: {

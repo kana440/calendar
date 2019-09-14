@@ -1,21 +1,31 @@
 <template id="the-nav-drawer">
   <v-navigation-drawer
-    app
-    clipped
+    app clipped
     v-model="drawer"
     mobile-break-point="960"
   >
   <v-list>
       <v-subheader>{{user.email}}</v-subheader>
       <template v-for="item in items">
-        <v-list-item @click="navigateTo(item)" :key="item.text"
-        :class="selectedClass(item.link)">
+        <v-list-item
+          @click="navigateTo(item)"
+          :key="item.text"
+          :class="textClass(item.link)"
+        >
           <v-list-item-action>
-              <v-icon :color="selectedIconClass(item.link)">{{ item.icon }}</v-icon>
+              <v-icon
+                :color="iconClass(item.link)"
+              >
+              {{ item.icon }}
+              </v-icon>
           </v-list-item-action>
           <v-list-item-content>
             <v-list-item-title>
-              {{ item.text }}
+              <span
+                :class="textClass(item.link)"
+              >
+                {{ item.text }}
+              </span>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -25,7 +35,6 @@
 </template>
 
 <script>
-
 const TheNavDrawer = {
   template: '#the-nav-drawer',
   computed: {
@@ -39,24 +48,25 @@ const TheNavDrawer = {
     },
     user() {
       return this.$store.state.user
-    }
+    },
   },
   methods: {
     navigateTo(item) {
       if(item.link) {
         this.$router.push(item.link)
       } else {
+        this.selected=item.link
         this.$store.commit(item.method, item.payload)
       }
     },
-    selectedClass(loc) {
+    textClass(loc) {
       if (loc === this.$route.path ) {
         return 'blue lighten-5 blue--text text--darken-3'
       } else {
         return ''
       }
     },
-    selectedIconClass(loc) {
+    iconClass(loc) {
       if (loc == this.$route.path ) {
         return 'blue darken-3 '
       } else {
@@ -64,17 +74,17 @@ const TheNavDrawer = {
       }
     }
   },
-
-  data: () => ({
+  data() {
+    return {
+      selected: this.$route.path,
       items: [
         { icon: 'meeting_room', text: '空き会議室を探す' , link: '/roomList' },
         { icon: 'alarm', text: '会議室をウォッチする', link: '/watchRooms' },
-        { icon: 'delete', text: 'ウォッチを取り消す', link: '/watchList' },
+        { icon: 'list', text: 'ウォッチ中一覧', link: '/watchList' },
         { icon: 'reply', text: '取得した会議室を譲る'  ,link: '/transfer' },
         { icon: 'settings', text: 'ユーザ設定', method: 'updateNewUser', payload:true },
-//        { icon: 'settings', text: '設定', link: '/settings'  },
-      ]
-  }),
+      ],
+    }
+  },
 }
-
 </script>

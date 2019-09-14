@@ -8,8 +8,7 @@
     }]
   },
   "webapp": {
-    "access": "MYSELF",
-    "executeAs": "USER_DEPLOYING"
-  },
-  "exceptionLogging": "STACKDRIVER"
+    "access": "ANYONE",
+    "executeAs": "USER_ACCESSING"
+  }
 }

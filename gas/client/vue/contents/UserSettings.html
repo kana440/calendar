@@ -8,21 +8,20 @@
       登録後も「メニュー＞設定」から変更できます。<br>
     </v-card-text>
 
-    <v-layout  class="ma-5">
+    <v-layout class="ma-5">
       <v-flex xs6>
         <v-card>
           <v-container>
             <p>会議室フロア</p>
-            <v-radio-group
-              v-model="selectedFloor"
-              :mandatory="true"
+            <v-checkbox
+              class="ma-1"
+              v-for="item of floors"
+              v-model="selectedFloors"
+              :label="item"
+              :value="item"
+              hide-details
             >
-              <v-radio
-                v-for="item in floors"
-                :label="item"
-                :value="item"
-              ></v-radio>
-            </v-radio-group>
+            </v-checkbox>
           </v-container>
         </v-card>
       </v-flex>
@@ -31,14 +30,16 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn
-        color="grey darken-2" text
+        text
+        color="grey darken-2"
         @click="cancel"
-        :disabled="!this.user.floor"
+        :disabled="!user.floors || user.floors.length===0"
       >cancel</v-btn>
       <v-btn
-        color="primary" text
+        text
+        color="primary"
         @click="save"
-        :disabled="false"
+        :disabled="selectedFloors.length===0"
       >Save</v-btn>
     </v-card-actions>
   </v-card>
@@ -49,14 +50,12 @@ const UserSettings = {
   template: '#user-settings',
   data() {
     return {
-      selectedFloor: null
+      selectedFloors: [],
     }
   },
-
   created(){
-    this.selectedFloor =  this.user.floor
+    this.selectedFloors =  this.user.floors || []
   },
-
   computed: {
     ...Vuex.mapGetters([
       'floors',
@@ -65,7 +64,6 @@ const UserSettings = {
     ...Vuex.mapState([
       'user',
     ]),
-
   },
   methods: {
     ...Vuex.mapMutations([
@@ -78,13 +76,13 @@ const UserSettings = {
     save() {
 //        this.$store.commit('patchUserSettings', {
         this.patchUserSettings({
-          floor: this.selectedFloor
+          floors: this.selectedFloors
         })
         this.setUserSettings()
     },
     cancel(){
       this.updateNewUser(false)
-      this.selectedFloor=this.user.floor
+      this.selectedFloors=this.user.floors
     }
   }
 }

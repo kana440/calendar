@@ -11,6 +11,7 @@ function runGoogleScript(method, payload) {
     addGuests: addGuests_,
     createEvent: apiCreateEvent_,
     deleteWatch: deleteWatch_,
+    getFreeBusy: apiGetFreeBusy_,
   }
 // todo: parsePayload
 //  if(!methods[method]) throw "no methods named " + method
@@ -312,12 +313,29 @@ function deleteWatch_(payload){
   })
   if(records.length===0) return
   if(records.length>1) throw 'multiple keys'
-  
+
   const record = records[0]
   record.status="09_キャンセル"
   return io.setWatchList(record)
 }
 
+function apiGetFreeBusy_(payload){
+  const startTimeString = payload.startTimeString
+  const endTimeString = payload.endTimeString
+  const rooms = payload.rooms
+  if ( !startTimeString || !endTimeString || !rooms) {
+    throw 'arg required'
+  }
+  const startTime = new Date(startTimeString)
+  const endTime = new Date(endTimeString)
+
+  const freebusy = Calendar.Freebusy.query({
+    timeMin: startTime.toISOString(),
+    timeMax: endTime.toISOString(),
+    items: rooms.map(function(room){return {id:room.calendarId}}),
+  })
+  return freebusy
+}
 // 汎用的に呼ばれるサブルーチン・コールバック関数等を定義
 function _eventGetter_(item) {
   var startTime, endTime

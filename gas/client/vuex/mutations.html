@@ -32,6 +32,14 @@ const mutations = {
       state.calendarEvents[idx] = payload
     }
   },
+  updateFreeBusy(state, payload) {
+    const idx = state.freeBusy.findIndex(query=>equalDate(query.date, payload.date))
+    if(idx === -1 ) {
+      state.freeBusy.push(payload)
+    } else {
+      state.freeBusy[idx] = payload
+    }
+  },
   updateroomsEvents(state, payload) {
     const idx = state.roomsEvents.findIndex(query=>{
       return equalDate(query.date, payload.date) && query.calendarId === payload.calendarId
@@ -49,6 +57,9 @@ const mutations = {
     state.calendarEvents=[]
   },
   clearRoomsEvents(state, payload) {
+    state.roomsEvents = []
+  },
+  clearFreeBusy(state, payload) {
     state.roomsEvents = []
   },
   switchDrawer(state, payload) {

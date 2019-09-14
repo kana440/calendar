@@ -1,2 +1,2 @@
-gas/client/.eslintrc.js
-gas/server/.eslintrc.js
+client/.eslintrc.js
+server/.eslintrc.js

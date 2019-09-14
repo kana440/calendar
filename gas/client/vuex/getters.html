@@ -7,10 +7,20 @@ const getters = {
   },
   validRooms(state) {
     return state.rooms.filter(room => {
-      return room.floor === state.user.floor
-      && room.validFrom <= state.selectedDate
-      && room.validTo >= state.selectedDate
+      return state.user.floors.indexOf(room.floor) >= 0 &&
+      room.validFrom <= state.selectedDate &&
+      room.validTo >= state.selectedDate
     })
+  },
+  freeBusySelectedDate(state){
+    const result = state.freeBusy.find(
+      freeBusy=>equalDate(freeBusy.date, state.selectedDate)
+    )
+    if(!result || !result.calendars) {
+      return {}
+    } else {
+      return result.calendars
+    }
   },
   calendarEventsSelectedDate(state){
     return state.calendarEvents.find(
@@ -28,7 +38,99 @@ const getters = {
       && record.subscriber === state.user.email
     ))
   },
+
   roomsStatus(state,getters){
+    const result = getters.validRooms.map(room=>{
+      const freeBusySelectedDate = getters.freeBusySelectedDate
+      if(!freeBusySelectedDate || !freeBusySelectedDate[room.calendarId]) {
+        return {
+          calendarId: room.calendarId,
+          name: room.name,
+          response: 'loading',
+          items: [],
+          cells: [],
+        }
+      }
+
+      const freeBusy = freeBusySelectedDate[room.calendarId]
+      //todo: busyEvent
+      const busyEvents = freeBusy.busy.map(item=>{
+        return {
+         startTime: new Date(item.start),
+         endTime: new Date(item.end),
+        }
+      })
+
+      let response
+      if(freeBusy.errors && freeBusy.errors.length>0) {
+        response = 'access denied'
+      } else if(freeBusy.busy.length===0){
+        response = 'has no events'
+      } else {
+        response = 'has events'
+      }
+
+      let acceptedEvents = []
+      let declinedEvents = []
+      //もしaccepted やdeclinedがあれば上書き
+      if(getters.calendarEventsSelectedDate) {
+        for(item of getters.calendarEventsSelectedDate.items){
+          //ToDo: 削除された予定、主催者でないパターンのテスト
+          if(!item.attendees || !item.organizer.self) {
+            continue
+          }
+          const guest = item.attendees.find(guest=>{
+            return guest.email === room.calendarId
+          })
+          if(!guest) {
+            continue
+          }
+
+          if(guest.responseStatus === 'declined'){
+            declinedEvents.push(item)
+          } else {
+            acceptedEvents.push(item)
+          }
+        }
+      }
+
+      const cells = getters.periods.map(period=>{
+        const startTime = period.from
+        const endTime = period.to
+        const busy = busyEvents.filter(event=>!(
+          startTime.getTime() >= event.endTime.getTime()
+          || endTime.getTime() <= event.startTime.getTime()
+        ))
+        const accepted = acceptedEvents.filter(event=>!(
+          startTime.getTime() >= event.endTime.getTime()
+          || endTime.getTime() <= event.startTime.getTime()
+        ))
+        const declined = declinedEvents.filter(event=>!(
+          startTime.getTime() >= event.endTime.getTime()
+          || endTime.getTime() <= event.startTime.getTime()
+        ))
+
+        return {
+          busy: busy,
+          accepted: accepted,
+          declined: declined,
+        }
+      })
+
+      return {
+        calendarId: room.calendarId,
+        name: room.name,
+        response: response,
+        cells: cells,
+        items: {
+          busyEvents, acceptedEvents, declinedEvents,
+        },
+      }
+    })
+    return result
+  },
+
+  old_roomsStatus(state,getters){
     return getters.roomsEventsSelectedDate.map(roomEvents=>{
       switch (roomEvents.response){
         case 'has events': {
