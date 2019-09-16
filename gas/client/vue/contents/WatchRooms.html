@@ -18,16 +18,19 @@
       items-per-page="999"
     >
       <v-progress-linear #progress color="blue" indeterminate></v-progress-linear>
-      <template #item.watch = {value,item}>
-        <span>alarm</span>
-      </template>
-
       <template #no-data>
         予定がありません
       </template>
-      <template #item.watch = {value,item} >
-        <template v-if="value">
+      <template #item.watch = "{value,item}" >
+        <template v-if="value==='01_ウォッチ中'">
           <v-btn icon @click.stop=""><v-icon>alarm</v-icon></v-btn>
+        </template>
+        <template v-else-if="value==='00_ロード中'">
+          <v-progress-circular
+            indeterminate
+            size="20"
+            width="2"
+          ></v-progress-circular>
         </template>
       </template>
     </v-data-table>
@@ -67,7 +70,13 @@
             v-if="value==='available'"
             @click.stop="handleAddGuest(item.calendarId)"
           >今すぐ取得</v-btn>
-          <span v-else > {{statusText[value]}} </span>
+          <v-progress-circular
+            v-else-if="value==='loading'"
+            indeterminate
+            size="20"
+            width="2"
+          ></v-progress-circular>
+          <span v-else> {{statusText[value]}} </span>
         </template>
       </v-data-table>
     </v-dialog>
@@ -140,6 +149,7 @@ const WatchRooms = {
       'user',
       'isLoading',
       'selectedDate',
+      'watchList',
     ]),
     ...Vuex.mapGetters([
       'validRooms',
@@ -160,6 +170,13 @@ const WatchRooms = {
         case 'has events': {
           return this.calendarEventsSelectedDate.items.map( item => {
             // 変換を指定
+            const watch = this.watchList.find(watch=>{
+              return (
+                watch.eventId===item.eventId
+                && watch.subscriber===this.user.email
+              )
+            })
+
             return {
               eventId: item.eventId,
               time: getStartEndTimeString(item.startTime, item.endTime),
@@ -167,7 +184,7 @@ const WatchRooms = {
               location: item.location,
               startTime: item.startTime,
               endTime: item.endTime,
-              watch: this.myWatchList.find(watch=>watch.eventId===item.eventId),
+              watch: watch ? watch.status : null,
               event: item,
               attendees: item.attendees,
             }
@@ -197,14 +214,20 @@ const WatchRooms = {
     },
     tableStep2(){
       if(!this.selectedEvent || this.validRooms.length === 0 ) return []
-      const results = this.roomsEventsSelectedDate.map(roomEvents=>{
-        const room = this.validRooms.find(room=>room.calendarId===roomEvents.calendarId)
+//      const results = this.roomsEventsSelectedDate.map(roomEvents=>{
+//        const room = this.validRooms.find(room=>room.calendarId===roomEvents.calendarId)
+      const results = this.validRooms.map(room=>{
+        const roomEvents = this.roomsEventsSelectedDate.find(roomEvents=>{
+          return room.calendarId===roomEvents.calendarId
+        })
+        console.log('222',room, roomEvents)
         //roomがないときはロード中
-        if(!room) return {
-          calendarId: roomEvents.calendarId,
+        if(!roomEvents) return {
+          calendarId: room.calendarId,
           name: '',
           status: 'loading',
         }
+        console.log('222',room, roomEvents,)
         switch(roomEvents.response){
           case 'has events': {
             const events = roomEvents.items.filter(event=>{
@@ -293,6 +316,7 @@ const WatchRooms = {
         z_noAuth: '利用権限なし',
         occupied: '先約あり',
         available: '○',
+        loading: 'ロード中・・・',
       },
 
 
@@ -368,6 +392,7 @@ const WatchRooms = {
       'updateSelectedEvent',
       'updateInitializing',
       'addEventRoomsEvents',
+      'pushWatchList',
     ]),
     ...Vuex.mapActions([
       'updateSelectedDate',
@@ -375,7 +400,6 @@ const WatchRooms = {
       'getWatchList',
       'setTrigger',
       'addGuests',
-      'pushWatchList',
       'log',
     ]),
     switchSelect(event){
@@ -460,15 +484,22 @@ const WatchRooms = {
         watchRooms: watchRooms,
       }
       //ロード中としてアップデート
-      this.pushWatchList(record)
-      record.status = '01_ウォッチ中'
+      console.log(record)
 
       this.selectedEvent = null
-      this.updateInitializing(true)
-      await this.setWatchList(record)
+      this.pushWatchList(record)
+      await this.setWatchList({
+        subscriber: this.user.email,
+        status: '01_ウォッチ中',
+        eventId: record.eventId,
+        startTime: record.startTime,
+        endTime: record.endTime,
+        summary: record.summary,
+        watchRooms:record.watchRooms,
+      })
+      record.status='01_ウォッチ中'
+
       await this.setTrigger()
-      await this.getWatchList()
-      this.updateInitializing(false)
     }
   },
 }

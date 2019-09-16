@@ -1,0 +1,11 @@
+userSetting {
+  email: String,
+  floors: Array,
+}
+
+log {
+  user: String,
+  time: Date,
+  message: String,
+  detail: String,
+}

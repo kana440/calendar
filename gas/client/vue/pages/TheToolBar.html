@@ -68,7 +68,7 @@
     <v-spacer></v-spacer>
       <v-btn
         icon
-        @click="updateSelectedDate(selectedDate)"
+        @click="handleReflesh"
       >
       <v-icon>refresh</v-icon>
     </v-btn>
@@ -110,6 +110,10 @@
     methods: {
       ...Vuex.mapActions([
         'updateSelectedDate',
+        'getFreeBusy',
+        'getCalendarEvents',
+        'getWatchList',
+        'getRoomsEvents',
       ]),
       switchDrawer() {
         this.$store.commit('switchDrawer');
@@ -136,6 +140,12 @@
         const date = new Date(this.$store.state.selectedDate)
         date.setDate(date.getDate() - 1)
         this.$store.dispatch('updateSelectedDate', date)
+      },
+      handleReflesh(){
+        this.getFreeBusy()
+        this.getCalendarEvents()
+        this.getWatchList()
+        this.getRoomsEvents()
       },
     }
   }

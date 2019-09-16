@@ -60,7 +60,15 @@ const api = {
       watchRooms,
     }
     const result = await this.runGas('setWatchList',payload)
-    return result
+    return {
+      subscriber,
+      status,
+      eventId,
+      startTime,
+      endTime,
+      summary,
+      watchRooms,
+    }
   },
 
   async createEvent({
@@ -160,19 +168,17 @@ const actions = {
 
   async getRoomsEvents({commit, state, getters}) {
     await new Promise((resolve,reject)=>setTimeout(()=>resolve(),800))
-    getters.validRooms.map((room,i) => {
-      return new Promise((resolve,reject)=>{
-        setTimeout(()=>resolve(),200*i)
-      }).then(()=>{
-        return api.getCalendarEvents({
-          calendarId: room.calendarId,
-          selectedDate: state.selectedDate,
+
+    for(room of getters.validRooms){
+      await new Promise((resolve,reject)=>setTimeout(()=>resolve(),200))
+      api.getCalendarEvents({
+        calendarId: room.calendarId,
+        selectedDate: state.selectedDate,
       }).then(result=>{
         result.name = room.name
         commit('updateroomsEvents', result)
-        })
       })
-    })
+    }
   },
 
   async setUserSettings({ state, commit , dispatch}){
@@ -191,7 +197,10 @@ const actions = {
   async setWatchList({state, commit},{
     subscriber, status, eventId, startTime, endTime, summary, watchRooms
   }){
-    return await api.setWatchList({
+    const result = await api.setWatchList({
+      subscriber, status, eventId, startTime, endTime, summary, watchRooms
+    })
+    commit('pushWatchList', {
       subscriber, status, eventId, startTime, endTime, summary, watchRooms
     })
   },
@@ -232,12 +241,12 @@ const actions = {
 
   async deleteWatch({ commit, dispatch, state}, payload){
     const result = await api.deleteWatch(payload)
+    commit('pushWatchList',payload)
 //    dispatch('getWatchList')
   },
 
   async log({ commit, dispatch, state}, payload){
     payload.user=state.user.email
-    console.log('logstart',payload)
     await api.log(payload)
   },
 
