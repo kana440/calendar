@@ -9,6 +9,8 @@
       :headers="headers"
       :items="tableStep1"
       :loading="isLoading"
+      multi-sort
+      :sort-by="['time']"
       hide-default-footer
       loading-text="ロード中..."
       no-data-text="予定がありません"
@@ -47,20 +49,23 @@
       >
         <template #top>
           <v-row justify="end">
-          <v-btn class="ma-2" @click.stop='back'>戻る</v-btn>
-          <v-btn class="ma-2 mr-4" color="secondary" :disabled="selected.length===0" @click.stop='register'>ウォッチ登録</v-btn>
+          <v-btn
+            class="ma-2"
+            @click.stop='back'
+          >戻る</v-btn>
+          <v-btn
+            class="ma-2 mr-4"
+            color="secondary"
+            :disabled="selected.length===0"
+            @click.stop='handleSetWatchList'
+          >ウォッチ登録</v-btn>
           </v-row>
-        </template>
-        <template #footer>
-          <v-spacer></v-spacer>
-          <v-btn class="ma-4" @click='back'>戻る</v-btn>
-          <v-btn class="ma-4"  :disabled="selected.length===0" @click='register'>ウォッチ登録</v-btn>
         </template>
         <template #item.status = {value,item}>
           <v-btn
             color="primary"
             v-if="value==='available'"
-            @click.stop="addRoom(item.calendarId)"
+            @click.stop="handleAddGuest(item.calendarId)"
           >今すぐ取得</v-btn>
           <span v-else > {{statusText[value]}} </span>
         </template>
@@ -71,6 +76,20 @@
         >
       </watch-rooms-event-create>
     </v-dialog>
+    <v-snackbar
+      v-model="snackbar.display"
+      :timeout="snackbar.timeout"
+    >
+      <v-icon :color="snackbar.iconColor">{{snackbar.icon}}</v-icon>
+      {{snackbar.text}}
+      <v-btn
+        color="blue"
+        text
+        @click="snackbar.display = false"
+      >
+        Close
+      </v-btn>
+    </v-snackbar>
   </v-card>
   </v-container>
 
@@ -189,7 +208,6 @@ const WatchRooms = {
         switch(roomEvents.response){
           case 'has events': {
             const events = roomEvents.items.filter(event=>{
-              console.log('step2_selectedEvent',this.selectedEvent)
               const status = getRoomStatus(
                 event,
                 roomEvents.calendarId,
@@ -215,7 +233,6 @@ const WatchRooms = {
                 organizer: organizer,
               }
             })
-            console.log('room',room)
             if(events.length!==0){
               const event = events[0]
               return {
@@ -264,6 +281,13 @@ const WatchRooms = {
       selected: [],
       loading: false,
       selectedEvent: null,
+      snackbar: {
+        display: false,
+        timeout: '5000',
+        iconColor: 'primary',
+        icon: 'information',
+        text: '',
+      },
 
       statusText: {
         z_noAuth: '利用権限なし',
@@ -276,7 +300,7 @@ const WatchRooms = {
           text: '時間',
           value: 'time',
           align: 'left',
-          sortable: false,
+          sortable: true,
           width: '120'
         },
         {
@@ -343,13 +367,16 @@ const WatchRooms = {
     ...Vuex.mapMutations([
       'updateSelectedEvent',
       'updateInitializing',
+      'addEventRoomsEvents',
     ]),
     ...Vuex.mapActions([
       'updateSelectedDate',
       'setWatchList',
       'getWatchList',
       'setTrigger',
-      'addGuests'
+      'addGuests',
+      'pushWatchList',
+      'log',
     ]),
     switchSelect(event){
       const index = this.selected.findIndex(item=>item.calendarId === event.calendarId)
@@ -362,7 +389,6 @@ const WatchRooms = {
     selectEvent(value){
       this.updateSelectedEvent(value.event)
       this.selectedEvent = value
-      console.log(this.selectedEvent)
     },
     updateSelected(value){
     },
@@ -370,20 +396,54 @@ const WatchRooms = {
       this.selectedEvent = null
 
     },
-    async addRoom(calendarId) {
+    async handleAddGuest(calendarId) {
+      //会議室を取得する
       const event = this.selectedEvent
-      console.log('event', event)
-      if(!event.attendees) event.attendees=[]
-      event.attendees.push({email:calendarId})
-      console.log('attendees', event.attendees)
-      this.addGuests({
+      const attendees = event.attendees ? event.attendees : []
+      attendees.push({email:calendarId})
+
+      const payload={
         calendarId: this.user.email,
         eventId: event.eventId,
-        guests: event.attendees
+        guests: attendees,
+      }
+
+      this.addGuests({
+        meta: null,
+        error: false,
+        payload: payload,
+      }).then(event=>{
+        this.addEventRoomsEvents({
+          calendarId: calendarId,
+          event: event,
+        })
+        this.snackbar.text="会議室を追加しました"
+        this.snackbar.icon='info'
+        this.snackbar.iconColor='primary'
+        this.snackbar.display=true
+        this.log({
+          message: '会議室取得_ウォッチリストから',
+          detail: {
+            calendarId: calendarId,
+            event: {
+              eventId: event.eventId,
+              startTime: event.startTime.toLocaleString(),
+              endTime: event.endTime.toLocaleString(),
+              summary: event.summary,
+            }
+          }
+        })
+      },error=>{
+        this.snackbar.text="タイムアウト：接続を確認してください"
+        if(error.response="timeout") this.snackbar.text="タイムアウト:取れたかどうか確認してください"
+        this.snackbar.icon='warning'
+        this.snackbar.iconColor='red'
+        this.snackbar.display=true
       })
+      //選択を削除して前画面に戻る
       this.selectedEvent = null
     },
-    async register() {
+    async handleSetWatchList() {
       const watchRooms = this.selected.map(room=>{
         return {
           calendarId: room.calendarId,
@@ -392,13 +452,17 @@ const WatchRooms = {
       })
       const record ={
         subscriber: this.user.email,
-        status: '01_ウォッチ中',
+        status: '00_ロード中',
         eventId: this.selectedEvent.eventId,
         startTime: this.selectedEvent.startTime,
         endTime: this.selectedEvent.endTime,
         summary: this.selectedEvent.summary,
         watchRooms: watchRooms,
       }
+      //ロード中としてアップデート
+      this.pushWatchList(record)
+      record.status = '01_ウォッチ中'
+
       this.selectedEvent = null
       this.updateInitializing(true)
       await this.setWatchList(record)

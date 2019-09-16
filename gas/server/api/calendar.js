@@ -12,6 +12,7 @@ function runGoogleScript(method, payload) {
     createEvent: apiCreateEvent_,
     deleteWatch: deleteWatch_,
     getFreeBusy: apiGetFreeBusy_,
+    log: log_,
   }
 // todo: parsePayload
 //  if(!methods[method]) throw "no methods named " + method
@@ -20,9 +21,15 @@ function runGoogleScript(method, payload) {
   } catch (e) {
     throw {
       response: 'error',
-      massage: JSON.stringify(e),
+      massage: e,
     }
   }
+}
+
+function log_(payload){
+  const io = constants.getIo()
+  payload.time = new Date()
+  io.appendLog(payload)
 }
 
 function apiCreateEvent_(payload){
@@ -42,7 +49,13 @@ function apiCreateEvent_(payload){
     summary: summary,
     attendees: attendees,
   }
-  return Calendar.Events.insert(request, calendarId)
+
+  const result = _eventGetter_(
+    Calendar.Events.insert(request, calendarId)
+  )
+  result.startTime = result.startTime.toISOString()
+  result.endTime = result.endTime.toISOString()
+  return result
 }
 
 function getRooms_(){
@@ -212,7 +225,12 @@ function addGuests_(payload) {
     sendNotifications: false
   }
   // 会議室追加
-  return Calendar.Events.patch(body, calendarId, eventId, options)
+  const result = _eventGetter_(
+    Calendar.Events.patch(body, calendarId, eventId, options)
+  )
+  result.startTime = result.startTime.toISOString()
+  result.endTime = result.endTime.toISOString()
+  return result
 }
 
 function addGuest(payload) {

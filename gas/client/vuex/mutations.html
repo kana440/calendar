@@ -50,8 +50,32 @@ const mutations = {
       state.roomsEvents[idx] = payload
     }
   },
+  addEventRoomsEvents(state, {calendarId, event}){
+    const idx = state.roomsEvents.findIndex(query=>{
+      return equalDate(query.date, event.startTime) && query.calendarId === calendarId
+    })
+    if(idx === -1) console.log('not found roomEvents')
+    state.roomsEvents[idx].items.push(event)
+
+    const idx2 = state.calendarEvents.findIndex(query=>{
+      return equalDate(query.date, event.startTime)
+    })
+    if(idx2 === -1) console.log('not found calendarEvents')
+    const old = state.calendarEvents[idx2].items.find(query=>{
+      query.eventId === event.eventId
+    })
+    if(old) {
+      old = event
+    } else {
+      state.calendarEvents[idx2].items.push(event)
+    }
+
+  },
   updateWatchList(state, payload){
     state.watchList = payload
+  },
+  pushWatchList(state, payload){
+    state.watchList.push(payload)
   },
   clearCalendarEvents(state, payload) {
     state.calendarEvents=[]
@@ -60,7 +84,7 @@ const mutations = {
     state.roomsEvents = []
   },
   clearFreeBusy(state, payload) {
-    state.roomsEvents = []
+    state.freeBusy = []
   },
   switchDrawer(state, payload) {
     state.drawer = !state.drawer

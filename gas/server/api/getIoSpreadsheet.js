@@ -42,6 +42,11 @@ function getIoSpreadsheet() {
         record: payload,
       })
     },
+    appendLog: function(payload){
+      this._setData('log',{
+        record: payload,
+      })
+    },
 
     //内部利用
     _spread: _spread,

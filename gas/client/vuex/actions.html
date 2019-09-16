@@ -74,6 +74,8 @@ const api = {
       attendees,
     }
     const result = await this.runGas('createEvent',payload)
+    result.startTime = new Date(result.startTime)
+    result.endTime = new Date(result.endTime)
     return result
   },
 
@@ -82,7 +84,13 @@ const api = {
   },
 
   async addGuests(payload){
-    return this.runGas('addGuests',payload)
+    const result = await this.runGas('addGuests',payload)
+    console.log('startTime,endTime',result.startTime, result.endTime)
+
+    result.startTime = new Date(result.startTime)
+    result.endTime = new Date(result.endTime)
+    console.log('result',result)
+    return result
   },
 
   async deleteWatch(payload){
@@ -92,6 +100,10 @@ const api = {
   async getFreeBusy(payload){
     console.log('getFreeBusy',payload)
     return this.runGas('getFreeBusy',payload)
+  },
+
+  async log(payload){
+    this.runGas('log',payload)
   },
 
   runGas(func,payload) {
@@ -105,14 +117,14 @@ const api = {
     }).then(result=>result, error=>{
       if(error==='timeout'){
         console.log('timeout')
-        return {
+        throw {
           response: 'timeout',
         }
       } else {
         console.log('api error', error)
-        return {
+        throw {
           response: 'api error',
-          error: error,
+          error: error.message,
         }
       }
     })
@@ -147,18 +159,20 @@ const actions = {
   },
 
   async getRoomsEvents({commit, state, getters}) {
-    const results = await Promise.all(
-      getters.validRooms.map(async (room,i) => {
-        await new Promise((resolve,reject)=>setTimeout(()=>resolve(),80*i))
-        const result = await api.getCalendarEvents({
+    await new Promise((resolve,reject)=>setTimeout(()=>resolve(),800))
+    getters.validRooms.map((room,i) => {
+      return new Promise((resolve,reject)=>{
+        setTimeout(()=>resolve(),200*i)
+      }).then(()=>{
+        return api.getCalendarEvents({
           calendarId: room.calendarId,
           selectedDate: state.selectedDate,
-        })
+      }).then(result=>{
         result.name = room.name
-        return result
+        commit('updateroomsEvents', result)
+        })
       })
-    )
-    results.forEach(result=>commit('updateroomsEvents', result))
+    })
   },
 
   async setUserSettings({ state, commit , dispatch}){
@@ -167,10 +181,10 @@ const actions = {
 //    commit('clearCalendarEvents')
     commit('updateNewUser', false)
     commit('updateInitializing', true)
+    await api.setUserSettings(state.user)
     dispatch('getFreeBusy')
     dispatch('getRoomsEvents')
 //    dispatch('getCalendarEvents')
-    await api.setUserSettings(state.user)
     commit('updateInitializing', false)
   },
 
@@ -205,26 +219,26 @@ const actions = {
   },
 
   async createEvent({ commit, dispatch, state}, payload){
-    commit('updateInitializing',true)
-    const results = await api.createEvent(payload)
-    await dispatch('updateSelectedDate',state.selectedDate)
-    commit('updateInitializing',false)
+    return await api.createEvent(payload)
   },
 
   async setTrigger(){
     await api.setTrigger()
   },
 
-  async addGuests({ commit, dispatch, state}, payload){
-    commit('updateInitializing',true)
-    const results = await api.addGuests(payload)
-    await dispatch('updateSelectedDate',state.selectedDate)
-    commit('updateInitializing',false)
+  async addGuests({ commit, dispatch, state}, {meta, error, payload}){
+    return await api.addGuests(payload)
   },
 
   async deleteWatch({ commit, dispatch, state}, payload){
     const result = await api.deleteWatch(payload)
-    dispatch('getWatchList')
+//    dispatch('getWatchList')
+  },
+
+  async log({ commit, dispatch, state}, payload){
+    payload.user=state.user.email
+    console.log('logstart',payload)
+    await api.log(payload)
   },
 
   async getFreeBusy({commit, dispatch, getters, state}){
