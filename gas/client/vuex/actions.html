@@ -206,18 +206,17 @@ const actions = {
   },
 
   async updateSelectedDate({ commit, state, dispatch }, payload) {
-    state.isLoading = true
+    commit('updateInitializing', true)
     commit('updateSelectedEvent',null)
     commit('updateSelectedDate', payload)
     await Promise.all([
       dispatch('getCalendarEvents'),
       dispatch('getFreeBusy'),
-      dispatch('getRoomsEvents'),
     ])
-    state.isLoading = false
+    commit('updateInitializing', false)
+    dispatch('getRoomsEvents')
   },
-
-
+  
   async getWatchList({ commit, state },payload){
     const results = await api.getWatchList()
     commit('updateWatchList',results)

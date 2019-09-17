@@ -68,7 +68,7 @@
     <v-spacer></v-spacer>
       <v-btn
         icon
-        @click="handleReflesh"
+        @click="handleRefresh"
       >
       <v-icon>refresh</v-icon>
     </v-btn>
@@ -141,11 +141,9 @@
         date.setDate(date.getDate() - 1)
         this.$store.dispatch('updateSelectedDate', date)
       },
-      handleReflesh(){
-        this.getFreeBusy()
-        this.getCalendarEvents()
+      handleRefresh(){
         this.getWatchList()
-        this.getRoomsEvents()
+        this.updateSelectedDate(this.selectedDate)
       },
     }
   }
