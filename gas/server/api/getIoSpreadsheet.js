@@ -42,6 +42,15 @@ function getIoSpreadsheet() {
         record: payload,
       })
     },
+    setOldWatchList: function(payload){
+      this._setData('oldWatchList', {
+        keys: ['subscriber', 'eventId'],
+        record: payload,
+      })
+    },
+    clearWatchList: function(payload){
+      this._clearData('watchList')
+    },
     appendLog: function(payload){
       this._setData('log',{
         record: payload,
@@ -51,6 +60,15 @@ function getIoSpreadsheet() {
     //内部利用
     _spread: _spread,
     _sheets: _sheets,
+    _clearData: function(sheetName) {
+      //スプレッドから配列取得
+      if(!this._sheets[sheetName]){
+        this._sheets[sheetName] = this._spread.getSheetByName(sheetName)
+      }
+      const sheet = this._sheets[sheetName]
+      const range = sheet.getDataRange()
+      range.offset(2,0).clearContent()
+    },
     _getData: function(sheetName, payload){
       //payload
       const filter = !payload || !payload.filter ? [] : payload.filter

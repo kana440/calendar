@@ -1,3 +1,22 @@
+function clearPastWatchList() {
+  const io = constants.getIo()
+  const watchList = io.getWatchList()
+  const today = new Date(new Date().toLocaleDateString())
+  const newList = watchList.filter(function(record){
+    return record.endTime.getTime() > today.getTime()
+  })
+  const oldList = watchList.filter(function(record){
+    return record.endTime.getTime() <= today.getTime()
+  })
+  io.clearWatchList()
+  newList.forEach(function(record){
+    io.setWatchList(record)
+  })
+  oldList.forEach(function(record){
+    io.setOldWatchList(record)
+  })
+}
+
 function roomCheck() {
   const io = constants.getIo()
   const subscriber = Session.getActiveUser().getEmail()
@@ -117,7 +136,6 @@ function roomCheck() {
           eventId: record.eventId,
           guests: myguests,
         })
-
 
         //メール文作成・送付
         const template = HtmlService.createTemplateFromFile('server/mail')
