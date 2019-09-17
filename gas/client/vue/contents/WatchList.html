@@ -126,7 +126,10 @@
       ]),
       tableWatchList(){
         return this.watchList.filter(record=>{
-          return record.status === '01_ウォッチ中' || record.status === '00_ロード中'
+          return (
+            record.status === '01_ウォッチ中' ||
+            record.status === '00_ロード中' ) &&
+            record.subscriber === this.user.email
         }).map(record=>({
           subscriber: record.subscriber,
           eventId: record.eventId,
