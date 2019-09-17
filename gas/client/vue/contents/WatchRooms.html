@@ -220,14 +220,12 @@ const WatchRooms = {
         const roomEvents = this.roomsEventsSelectedDate.find(roomEvents=>{
           return room.calendarId===roomEvents.calendarId
         })
-        console.log('222',room, roomEvents)
         //roomがないときはロード中
         if(!roomEvents) return {
           calendarId: room.calendarId,
           name: '',
           status: 'loading',
         }
-        console.log('222',room, roomEvents,)
         switch(roomEvents.response){
           case 'has events': {
             const events = roomEvents.items.filter(event=>{
@@ -295,7 +293,19 @@ const WatchRooms = {
   },
   watch: {
     selectedEvent(){
-      this.selected = this.tableStep2.map(item=>item)
+      if( this.selectedEvent ){
+        const record = this.myWatchList.find(record=>{
+          return record.eventId === this.selectedEvent.eventId
+        })
+        console.log('selectedEvent',this.selectedEvent)
+        console.log('myWatchList',this.myWatchList)
+        console.log('watchListToUpdate',record)
+        this.selected = this.tableStep2.filter(item=>{
+          return !record || (
+            record.watchRooms.some(list=>list.calendarId === item.calendarId)
+          )
+        })
+      }
     },
   },
   data() {
