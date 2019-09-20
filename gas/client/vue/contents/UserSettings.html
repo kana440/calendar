@@ -68,7 +68,7 @@ const UserSettings = {
   methods: {
     ...Vuex.mapMutations([
       'patchUserSettings',
-      'updateNewUser'
+      'updateShowUserSettings'
     ]),
     ...Vuex.mapActions([
       'setUserSettings',
@@ -81,7 +81,7 @@ const UserSettings = {
         this.setUserSettings()
     },
     cancel(){
-      this.updateNewUser(false)
+      this.updateShowUserSettings(false)
       this.selectedFloors=this.user.floors
     }
   }

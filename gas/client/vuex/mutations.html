@@ -2,7 +2,7 @@
 // mutations
 const mutations = {
   updateRooms(state, payload){
-    state.rooms = payload;
+    state.rooms = payload
   },
   updateUserSettings(state, payload){
     state.user = payload
@@ -18,8 +18,8 @@ const mutations = {
     }
     state.user=update
   },
-  updateNewUser(state, payload){
-    state.newUser = payload
+  updateShowUserSettings(state, payload){
+    state.showUserSettings = payload
   },
   updateInitializing(state, payload){
     state.initializing = payload
@@ -29,7 +29,7 @@ const mutations = {
     if(idx === -1 ) {
       state.calendarEvents.push(payload)
     } else {
-      state.calendarEvents[idx] = payload
+      Vue.set(state.calendarEvents,idx,payload)
     }
   },
   updateFreeBusy(state, payload) {
@@ -37,7 +37,7 @@ const mutations = {
     if(idx === -1 ) {
       state.freeBusy.push(payload)
     } else {
-      state.freeBusy[idx] = payload
+      Vue.set(state.freeBusy,idx,payload)
     }
   },
   updateroomsEvents(state, payload) {
@@ -47,7 +47,7 @@ const mutations = {
     if(idx === -1 ) {
       state.roomsEvents.push(payload)
     } else {
-      state.roomsEvents[idx] = payload
+      Vue.set(state.roomsEvents,idx,payload)
     }
   },
   addEventRoomsEvents(state, {calendarId, event}){

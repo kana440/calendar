@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        空き会議室一覧
+        空き会議室一覧{{roomsStatus.response}}
         <v-progress-circular
           v-if="false"
           class = "ml-4"
@@ -29,7 +29,7 @@
         <tbody>
 
           <template
-            v-for="room of roomsStatus"
+            v-for="room of roomsStatus.rooms"
           >
             <tr>
               <td class="room">{{room.name}}{{room.caledarId}}</td>

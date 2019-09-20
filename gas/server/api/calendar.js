@@ -340,7 +340,7 @@ function deleteWatch_(payload){
 function apiGetFreeBusy_(payload){
   const startTimeString = payload.startTimeString
   const endTimeString = payload.endTimeString
-  const rooms = payload.rooms
+  const rooms = payload.calendars
   if ( !startTimeString || !endTimeString || !rooms) {
     throw 'arg required'
   }

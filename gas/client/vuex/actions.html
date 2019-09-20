@@ -4,8 +4,10 @@ const api = {
   _timeout: 2000,
   _timer: [],
 
+  //メソッドの引数は分割して引数定義
   async getRooms(){
     const result = await this.runGas('getRooms')
+    // 出力の型変換を行う
     result.forEach(item => {
       item.validFrom = new Date(item.validFrom)
       item.validTo = new Date(item.validTo)
@@ -19,10 +21,12 @@ const api = {
   },
 
   async getCalendarEvents({calendarId, selectedDate}){
+    // 入力の型変換を行う
     const result = await this.runGas('getCalendarEvents',{
       calendarId: calendarId,
       dateString: selectedDate.toLocaleDateString(),
     })
+    // 出力の型変換を行う
     result.date = new Date(result.date)
     result.items.forEach(item=>{
        item.startTime = new Date(item.startTime)
@@ -33,6 +37,7 @@ const api = {
 
   async getWatchList(){
     const result = await this.runGas('getWatchList')
+    // 出力の型変換を行う
     result.forEach(item=>{
        item.startTime = new Date(item.startTime)
        item.endTime = new Date(item.endTime)
@@ -40,16 +45,25 @@ const api = {
     return result
   },
 
-  async setUserSettings({email,floors}){
-    return await this.runGas('setUserSettings',{
-      email,
-      floors,
-    })
+  async getFreeBusy({startTime, endTime, calendars}){
+    // 入力の型変換を行う
+    const payload = {
+      startTimeString: startTime.toISOString(),
+      endTimeString: endTime.toISOString(),
+      calendars,
+    }
+    return this.runGas('getFreeBusy',payload)
+  },
+
+  async setUserSettings({ email, floors }){
+    const result = await this.runGas('setUserSettings',{ email, floors })
+    return result
   },
 
   async setWatchList({
     subscriber, status, eventId, startTime, endTime, summary, watchRooms
   }) {
+    // 入力の型変換を行う
     const payload = {
       subscriber,
       status,
@@ -60,20 +74,13 @@ const api = {
       watchRooms,
     }
     const result = await this.runGas('setWatchList',payload)
-    return {
-      subscriber,
-      status,
-      eventId,
-      startTime,
-      endTime,
-      summary,
-      watchRooms,
-    }
+    return result
   },
 
   async createEvent({
     calendarId, startTime, endTime, summary, attendees,
   }) {
+    // 入力の型変換を行う
     const payload = {
       calendarId,
       startTimeString: startTime.toLocaleString(),
@@ -81,33 +88,31 @@ const api = {
       summary,
       attendees,
     }
-    const result = await this.runGas('createEvent',payload)
-    result.startTime = new Date(result.startTime)
-    result.endTime = new Date(result.endTime)
-    return result
+    const event = await this.runGas('createEvent',payload)
+    // 出力の型変換を行う
+    event.startTime = new Date(result.startTime)
+    event.endTime = new Date(result.endTime)
+    return event
+  },
+
+  async addGuests({
+    calendarId, eventId, guests
+  }){
+    const event = await this.runGas('addGuests',{
+      calendarId, eventId, guests
+    })
+    // 出力の型変換を行う
+    event.startTime = new Date(result.startTime)
+    event.endTime = new Date(result.endTime)
+    return event
+  },
+
+  async deleteWatch({ subscriber, eventId }){
+    return this.runGas('deleteWatch',{ subscriber, eventId })
   },
 
   async setTrigger(){
     return this.runGas('setTrigger')
-  },
-
-  async addGuests(payload){
-    const result = await this.runGas('addGuests',payload)
-    console.log('startTime,endTime',result.startTime, result.endTime)
-
-    result.startTime = new Date(result.startTime)
-    result.endTime = new Date(result.endTime)
-    console.log('result',result)
-    return result
-  },
-
-  async deleteWatch(payload){
-    return this.runGas('deleteWatch',payload)
-  },
-
-  async getFreeBusy(payload){
-    console.log('getFreeBusy',payload)
-    return this.runGas('getFreeBusy',payload)
   },
 
   async log(payload){
@@ -116,6 +121,7 @@ const api = {
 
   runGas(func,payload) {
     // api 負荷軽減
+    // todo: ES5 await/catch記法
     return new Promise((resolve, reject) => {
       setTimeout(()=>reject('timeout'),this._timeout)
       google.script.run
@@ -131,8 +137,11 @@ const api = {
       } else {
         console.log('api error', error)
         throw {
-          response: 'api error',
-          error: error.message,
+          response: 'api error:' + func,
+          error: {
+            message: JSON.stringify(error.message),
+            payload: payload,
+          }
         }
       }
     })
@@ -140,7 +149,7 @@ const api = {
 }
 
 const actions = {
-  async initialize({commit, dispatch, getters, state}){
+  async initialize({commit, dispatch, getters}){
     const [rooms, userSettings] = await Promise.all([
       api.getRooms(),
       api.getUserSettings(),
@@ -150,7 +159,7 @@ const actions = {
     commit('updateInitializing', false)
     // ユーザ情報がない時・あってもフロア情報が無効のとき、ユーザ設定
     if(!getters.validRooms.length){
-      commit('updateNewUser', true)
+      commit('updateShowUserSettings', true)
     }
     dispatch('getFreeBusy')
     dispatch('getCalendarEvents')
@@ -159,33 +168,134 @@ const actions = {
   },
 
   async getCalendarEvents({ commit, state }) {
-    const result = await api.getCalendarEvents({
-      calendarId: state.user.email,
-      selectedDate: state.selectedDate,
+    // 現在の値のまま、ステータスのみロード中に設定
+    commit('updateCalendarEvents', {
+      date: state.selectedDate,
+      response: 'loading',
+      items: [],
     })
-    commit('updateCalendarEvents', result)
-  },
+    // 更新値を取得、エラーの場合はエラーを反映
 
-  async getRoomsEvents({commit, state, getters}) {
-    await new Promise((resolve,reject)=>setTimeout(()=>resolve(),800))
-
-    for(room of getters.validRooms){
-      await new Promise((resolve,reject)=>setTimeout(()=>resolve(),200))
-      api.getCalendarEvents({
-        calendarId: room.calendarId,
+    try {
+      const result = await api.getCalendarEvents({
+        calendarId: state.user.email,
         selectedDate: state.selectedDate,
-      }).then(result=>{
-        result.name = room.name
-        commit('updateroomsEvents', result)
+      })
+      result.response = 'success'
+      commit('updateCalendarEvents', result)
+    } catch (err) {
+      commit('updateCalendarEvents', {
+        date: state.selectedDate,
+        response: 'error',
+        items: [],
       })
     }
   },
+
+  async getRoomsEvents({commit, state, getters}) {
+    // 現在の値のまま、ステータスのみロード中に設定
+    getters.validRooms.forEach(room=>{
+      commit('updateRoomsEvents', {
+        calendarId: room.calendarId,
+        date: state.selectedDate,
+        response: 'loading',
+        items:[],
+      })
+    })
+    // 更新値を取得、エラーの場合はエラーを反映
+    await new Promise((resolve,reject)=>setTimeout(()=>resolve(),800))
+    for(let room of getters.validRooms){
+      await new Promise((resolve,reject)=>setTimeout(()=>resolve(),200))
+      const result = await api.getCalendarEvents({
+        calendarId: room.calendarId,
+        selectedDate: state.selectedDate,
+      }).catch(()=>{
+        commit('updateroomsEvents', {
+          calendarId: room.calendarId,
+          date: state.selectedDate,
+          response: 'error',
+          items: [],
+        })
+      })
+      commit('updateRoomsEvents', result)
+    }
+  },
+
+  async getFreeBusy({commit, dispatch, getters, state}){
+    const lot = 15 //一度にクエリする部屋の数
+    const dateString = state.selectedDate.toLocaleDateString()
+    const startTime = new Date(dateString)
+    const endTime = new Date(dateString)
+    endTime.setDate(endTime.getDate()+1)
+
+    // ステータスのみロード中に設定
+    const current = state.freeBusy.find(
+      freeBusy=>equalDate(freeBusy.date, state.selectedDate)
+    )
+    commit('updateFreeBusy', {
+      calendars: {},
+      date: startTime,
+      response: 'loading',
+    })
+
+    // 更新値を取得、エラーの場合はエラーを反映
+    const rooms = getters.validRooms.map(room=>({calendarId: room.calendarId}))
+    const results = {
+      calendars: {},
+    }
+    for(let i=0; i<rooms.length; i+=lot){
+      const payload = {
+        startTime: startTime,
+        endTime: endTime,
+        calendars: rooms.slice(i,i+lot),
+      }
+      try{
+        const result = await api.getFreeBusy(payload)
+        Object.assign(results.calendars,result.calendars)
+      } catch(err){
+        commit('updateFreeBusy', {
+          date: startTime,
+          response: 'error',
+        })
+        // 中断
+        return
+      }
+    }
+    commit('updateFreeBusy', {
+      date: startTime,
+      response: 'success',
+      ...results,
+    })
+  },
+
+  async getWatchList({ commit, state },payload){
+    // ステータスのみロード中に設定
+    commit('updateWatchList', {
+      response: 'loading',
+      records: []
+    })
+
+    // 更新値を取得、エラーの場合はエラーを反映
+    try {
+      const records = await api.getWatchList()
+      commit('updateWatchList', {
+        response: 'success',
+        records: records
+      })
+    } catch (err) {
+      commit('updateWatchList', {
+        response: 'error',
+        records: []
+      })
+    }
+  },
+
 
   async setUserSettings({ state, commit , dispatch}){
     commit('clearRoomsEvents')
     commit('clearFreeBusy')
 //    commit('clearCalendarEvents')
-    commit('updateNewUser', false)
+    commit('updateShowUserSettings', false)
     commit('updateInitializing', true)
     await api.setUserSettings(state.user)
     dispatch('getFreeBusy')
@@ -216,11 +326,6 @@ const actions = {
     commit('updateInitializing', false)
     dispatch('getRoomsEvents')
   },
-  
-  async getWatchList({ commit, state },payload){
-    const results = await api.getWatchList()
-    commit('updateWatchList',results)
-  },
 
   onEventSelected({ commit }, { event }) {
     commit('selectEvent', { event })
@@ -247,24 +352,6 @@ const actions = {
   async log({ commit, dispatch, state}, payload){
     payload.user=state.user.email
     await api.log(payload)
-  },
-
-  async getFreeBusy({commit, dispatch, getters, state}){
-    const dateString = state.selectedDate.toLocaleDateString()
-    const startTime = new Date(dateString)
-    const endTime = new Date(dateString)
-    endTime.setDate(endTime.getDate()+1)
-
-    const payload = {
-      startTimeString: startTime.toLocaleString(),
-      endTimeString: endTime.toLocaleString(),
-      rooms: getters.validRooms.map(room=>({calendarId: room.calendarId})),
-    }
-    const result = await api.getFreeBusy(payload)
-    commit('updateFreeBusy', {
-      date: startTime,
-      ...result,
-    })
   },
 }
 </script>

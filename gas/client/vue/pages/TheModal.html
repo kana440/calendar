@@ -21,10 +21,10 @@ const TheModal = {
     },
     dialog: {
       get() {
-        return this.$store.state.newUser
+        return this.$store.state.showUserSettings
       },
       set(value){
-        this.$store.commit('updateNewUser', value)
+        this.$store.commit('updateShowUserSettings', value)
       },
     },
   },

@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        ウォッチ中一覧
+        ウォッチ中一覧{{watchList.response}}
         <div class="flex-grow-1"></div>
         <v-text-field
           v-model="search"
@@ -125,7 +125,7 @@
 //        'myWatchList',
       ]),
       tableWatchList(){
-        return this.watchList.filter(record=>{
+        return this.watchList.records.filter(record=>{
           return (
             record.status === '01_ウォッチ中' ||
             record.status === '00_ロード中' ) &&

@@ -2,13 +2,13 @@
   <v-container>
     <v-card>
     <v-card-title>
-      予定一覧
+      予定一覧{{calendarEventsSelectedDate.response}}
     </v-card-title>
     <v-data-table
       class="elevation-1"
       :headers="headers"
       :items="tableStep1"
-      :loading="isLoading"
+      :loading="calendarEventsSelectedDate.response==='loading'"
       multi-sort
       :sort-by="['time']"
       hide-default-footer

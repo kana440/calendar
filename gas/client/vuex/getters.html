@@ -13,14 +13,9 @@ const getters = {
     })
   },
   freeBusySelectedDate(state){
-    const result = state.freeBusy.find(
+    return result = state.freeBusy.find(
       freeBusy=>equalDate(freeBusy.date, state.selectedDate)
     )
-    if(!result || !result.calendars) {
-      return {}
-    } else {
-      return result.calendars
-    }
   },
   calendarEventsSelectedDate(state){
     return state.calendarEvents.find(
@@ -40,9 +35,27 @@ const getters = {
   },
 
   roomsStatus(state,getters){
-    const result = getters.validRooms.map(room=>{
-      const freeBusySelectedDate = getters.freeBusySelectedDate
-      if(!freeBusySelectedDate || !freeBusySelectedDate[room.calendarId]) {
+    const freeBusySelectedDate = getters.freeBusySelectedDate
+    const fbResponse = !freeBusySelectedDate ? 'loading' : freeBusySelectedDate.response
+    const ceResponse = !getters.calendarEventsSelectedDate ? 'loading' : getters.calendarEventsSelectedDate.response
+    if( fbResponse !== 'success' || ceResponse !== 'success' ){
+      const response = (fbResponse ==='error' || ceResponse ==='error') ? 'error' : 'loading'
+      return {
+        response: response,
+        rooms: getters.validRooms.map(room=>(
+          {
+            calendarId: room.calendarId,
+            name: room.name,
+            response: 'loading',
+            items: [],
+            cells: [],
+          }
+        ))
+      }
+    }
+
+    const rooms = getters.validRooms.map(room=>{
+      if(!freeBusySelectedDate.calendars[room.calendarId]) {
         return {
           calendarId: room.calendarId,
           name: room.name,
@@ -52,7 +65,7 @@ const getters = {
         }
       }
 
-      const freeBusy = freeBusySelectedDate[room.calendarId]
+      const freeBusy = freeBusySelectedDate.calendars[room.calendarId]
       //todo: busyEvent
       const busyEvents = freeBusy.busy.map(item=>{
         return {
@@ -127,7 +140,10 @@ const getters = {
         },
       }
     })
-    return result
+    return {
+      response: 'success',
+      rooms: rooms,
+    }
   },
 
   old_roomsStatus(state,getters){
