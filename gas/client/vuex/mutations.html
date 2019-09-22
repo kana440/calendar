@@ -76,18 +76,16 @@ const mutations = {
     state.watchList = payload
   },
   pushWatchList(state, payload){
-    let idx = state.watchList.findIndex(record=>{
+    let idx = state.watchList.records.findIndex(record=>{
       return (
         record.eventId === payload.eventId
         && record.subscriber === payload.subscriber
       )
     })
-    console.log('pushWatchList idx',idx)
-    console.log('pushWatchList payload',payload)
     if(idx===-1) {
-      state.watchList.push(payload)
+      state.watchList.records.push(payload)
     } else {
-      state.watchList.splice(idx,1,payload)
+      Vue.set(state.watchList.records,idx,payload)
     }
   },
   clearCalendarEvents(state, payload) {

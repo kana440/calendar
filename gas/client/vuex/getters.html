@@ -28,8 +28,8 @@ const getters = {
     )
   },
   myWatchList(state){
-    return state.watchList.filter(record => (
-      record.status === "01_ウォッチ中"　
+    return state.watchList.records.filter(record => (
+      record.status === "01_ウォッチ中"
       && record.subscriber === state.user.email
     ))
   },

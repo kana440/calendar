@@ -73,12 +73,18 @@ function roomCheck() {
         return
       }
 
-      //Freebusy一括問い合わせ
-      const freebusy = Calendar.Freebusy.query({
-        timeMin: record.startTime.toISOString(),
-        timeMax: record.endTime.toISOString(),
-        items: record.watchRooms.map(function(room){return {id:room.calendarId}}),
-      })
+      //Freebusy一括問い合わせ, 15部屋ずつ
+      const freebusy = {}
+      const lot=15
+
+      for(var i=0; i<record.watchRooms.length; i+=lot){
+        Object.assign(freebusy.calendars,
+          Calendar.Freebusy.query({
+            timeMin: record.startTime.toISOString(),
+            timeMax: record.endTime.toISOString(),
+            items: record.watchRooms.slice(i,i+lot).map(function(room){return {id:room.calendarId}})
+        }).calendars)
+      }
 
       //開いた会議室を確認
       const roomsAvailable = record.watchRooms.filter(function(room) {

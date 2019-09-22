@@ -240,7 +240,7 @@ const WatchRooms = {
         //roomがないときはロード中
         if(!roomEvents) return {
           calendarId: room.calendarId,
-          name: '',
+          name: room.name,
           status: 'loading',
         }
         switch(roomEvents.response){
@@ -303,6 +303,13 @@ const WatchRooms = {
               status: 'z_noAuth',
             }
           }
+          case 'loading': {
+            return {
+              calendarId: room.calendarId,
+              name: room.name,
+              status: 'loading',
+            }
+          }
         }
       })
       return results
@@ -314,9 +321,6 @@ const WatchRooms = {
         const record = this.myWatchList.find(record=>{
           return record.eventId === this.selectedEvent.eventId
         })
-        console.log('selectedEvent',this.selectedEvent)
-        console.log('myWatchList',this.myWatchList)
-        console.log('watchListToUpdate',record)
         this.selected = this.tableStep2.filter(item=>{
           return !record || (
             record.watchRooms.some(list=>list.calendarId === item.calendarId)
@@ -463,7 +467,7 @@ const WatchRooms = {
         meta: null,
         error: false,
         payload: payload,
-      }).then(event=>{
+      }).then(result=>{
         this.addEventRoomsEvents({
           calendarId: calendarId,
           event: event,
