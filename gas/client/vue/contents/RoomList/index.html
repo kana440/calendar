@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        空き会議室一覧{{roomsStatus.response}}
+        空き会議室一覧
         <v-progress-circular
           v-if="false"
           class = "ml-4"
@@ -11,7 +11,30 @@
         ></v-progress-circular>
 
       </v-card-title>
-      <v-container>
+      <v-container v-if="roomsStatus.response==='error'">
+      <v-alert prominent outlined type="error">
+        <v-row>
+          <v-col class="grow">ネットワークが不安定です。再読込してください。</v-col>
+        <v-col class="shrink">
+        <v-btn
+            color="error"
+            outlined
+            @click="$store.dispatch('getFreeBusy');$store.dispatch('getCalendarEvents');"
+          >
+            読込
+          </v-btn>
+          </v-col>
+          </v-row>
+      </v-alert>
+      </v-container>
+
+      <v-container v-else>
+
+      <v-progress-linear
+        class="mb-2"
+        indeterminate
+        v-if="roomsStatus.response==='loading'"
+      ></v-progress-linear>
 
       <v-simple-table
         dense
@@ -20,14 +43,13 @@
       >
         <thead>
             <th colspan="2">
-              room
+              部屋名
             </th>
             <template v-for="time of times">
               <th colspan="2" class="subtitle-1 indigo--text" style="text-align: center">{{time}}</th>
             </template>
         </thead>
         <tbody>
-
           <template
             v-for="room of roomsStatus.rooms"
           >

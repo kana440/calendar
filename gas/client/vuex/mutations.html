@@ -40,7 +40,7 @@ const mutations = {
       Vue.set(state.freeBusy,idx,payload)
     }
   },
-  updateroomsEvents(state, payload) {
+  updateRoomsEvents(state, payload) {
     const idx = state.roomsEvents.findIndex(query=>{
       return equalDate(query.date, payload.date) && query.calendarId === payload.calendarId
     })
@@ -51,10 +51,11 @@ const mutations = {
     }
   },
   addEventRoomsEvents(state, {calendarId, event}){
+    console.log('eventTime', event.startTime)
     const idx = state.roomsEvents.findIndex(query=>{
       return equalDate(query.date, event.startTime) && query.calendarId === calendarId
     })
-    if(idx === -1) console.log('not found roomEvents')
+    if(idx === -1) console.log('not found')
     state.roomsEvents[idx].items.push(event)
 
     const idx2 = state.calendarEvents.findIndex(query=>{

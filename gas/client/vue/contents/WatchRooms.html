@@ -2,9 +2,27 @@
   <v-container>
     <v-card>
     <v-card-title>
-      予定一覧{{calendarEventsSelectedDate.response}}
+      予定一覧
     </v-card-title>
+    <v-container v-if="calendarEventsSelectedDate.response==='error'">
+    <v-alert prominent outlined type="error">
+      <v-row>
+        <v-col class="grow">ネットワークが不安定です。再読込してください。</v-col>
+      <v-col class="shrink">
+      <v-btn
+          color="error"
+          outlined
+          @click="$store.dispatch('getCalendarEvents');$store.dispatch('getWatchList');$store.dispatch('getRoomsEvents');"
+        >
+          読込
+        </v-btn>
+        </v-col>
+        </v-row>
+    </v-alert>
+    </v-container>
+
     <v-data-table
+      v-else
       class="elevation-1"
       :headers="headers"
       :items="tableStep1"
@@ -162,15 +180,17 @@ const WatchRooms = {
       return 2
     },
     tableStep1() {
+      // calendarEventsとwatchListと双方に依存、
+      // ローディングを判定
       if(!this.calendarEventsSelectedDate){
         //ロード中
         return
       }
       switch(this.calendarEventsSelectedDate.response){
-        case 'has events': {
+        case 'success': {
           return this.calendarEventsSelectedDate.items.map( item => {
             // 変換を指定
-            const watch = this.watchList.find(watch=>{
+            const watch = this.watchList.records.find(watch=>{
               return (
                 watch.eventId===item.eventId
                 && watch.subscriber===this.user.email
@@ -189,18 +209,15 @@ const WatchRooms = {
               attendees: item.attendees,
             }
           })
-
-
         }
-        case 'has no events': {
-
+        case 'loading' :{
+          return []
         }
-        case 'access denied': {
-
+        case 'error' :{
+          return []
         }
-        dafault :{
-          //エラー
-
+        default:{
+          return []
         }
       }
     },

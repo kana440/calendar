@@ -90,8 +90,8 @@ const api = {
     }
     const event = await this.runGas('createEvent',payload)
     // 出力の型変換を行う
-    event.startTime = new Date(result.startTime)
-    event.endTime = new Date(result.endTime)
+    event.startTime = new Date(event.startTime)
+    event.endTime = new Date(event.endTime)
     return event
   },
 
@@ -210,7 +210,7 @@ const actions = {
         calendarId: room.calendarId,
         selectedDate: state.selectedDate,
       }).catch(()=>{
-        commit('updateroomsEvents', {
+        commit('updateRoomsEvents', {
           calendarId: room.calendarId,
           date: state.selectedDate,
           response: 'error',
