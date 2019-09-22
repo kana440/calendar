@@ -1,6 +1,6 @@
 <script>
 const RoomListCell = {
-  template: `<td class="cell" :class="status" @click="onClick">{{text}}</td>`,
+  template: `<td class="cell" :class="status" :style="style" @click="onClick">{{text}}</td>`,
   props: {
     calendarId: String,
     name: String,
@@ -33,6 +33,30 @@ const RoomListCell = {
         }
         case 'access denied': {
           return 'dashed'
+        }
+      }
+    },
+    style(){
+      switch(this.response){
+        case 'has events': {
+          if(this.cells.accepted.length > 0 ){
+            return { cursor: "default" }
+          } else if (this.cells.declined.length > 0) {
+            return { cursor: "not-allowed" }
+          } else if (this.cells.busy.length > 0) {
+            return { cursor: "not-allowed" }
+          } else {
+            return { cursor: "pointer" }
+          }
+        }
+        case 'has no events': {
+          return { cursor: "pointer" }
+        }
+        case 'access denied': {
+          return { cursor: "not-allowed" }
+        }
+        default: {
+          return { cursor: "default" }
         }
       }
     },
