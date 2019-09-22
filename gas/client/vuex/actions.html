@@ -1,7 +1,7 @@
 <script>
 const api = {
   _interval: 1000,
-  _timeout: 2000,
+  _timeout: 3000,
   _timer: [],
 
   //メソッドの引数は分割して引数定義
@@ -203,9 +203,9 @@ const actions = {
       })
     })
     // 更新値を取得、エラーの場合はエラーを反映
-    await new Promise((resolve,reject)=>setTimeout(()=>resolve(),800))
+    await new Promise((resolve,reject)=>setTimeout(()=>resolve(),600))
     for(let room of getters.validRooms){
-      await new Promise((resolve,reject)=>setTimeout(()=>resolve(),200))
+      await new Promise((resolve,reject)=>setTimeout(()=>resolve(),140))
       const result = await api.getCalendarEvents({
         calendarId: room.calendarId,
         selectedDate: state.selectedDate,
@@ -316,14 +316,9 @@ const actions = {
   },
 
   async updateSelectedDate({ commit, state, dispatch }, payload) {
-    commit('updateInitializing', true)
-    commit('updateSelectedEvent',null)
     commit('updateSelectedDate', payload)
-    await Promise.all([
-      dispatch('getCalendarEvents'),
-      dispatch('getFreeBusy'),
-    ])
-    commit('updateInitializing', false)
+    dispatch('getCalendarEvents'),
+    dispatch('getFreeBusy'),
     dispatch('getRoomsEvents')
   },
 

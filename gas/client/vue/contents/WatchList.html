@@ -46,12 +46,12 @@
         items-per-page="999"
       >
         <template #item.delete = "{item}">
-          <template v-if="item.status==='01_ウォッチ中'">
+          <template v-if="item.status==='ウォッチ中'">
             <v-btn icon
               @click.stop="selectedRecord=item;deleteDialog=true"
             ><v-icon>delete</v-icon></v-btn>
           </template>
-          <template v-else-if="item.status==='00_ロード中'">
+          <template v-else-if="item.status==='ロード中'">
             <v-progress-circular
               indeterminate
               size="20"
