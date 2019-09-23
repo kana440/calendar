@@ -505,31 +505,16 @@ const WatchRooms = {
           name: room.name,
         }
       })
-      const record ={
+      await this.setWatchList({
         subscriber: this.user.email,
-        status: '00_ロード中',
+        status: '01_ウォッチ中',
         eventId: this.selectedEvent.eventId,
         startTime: this.selectedEvent.startTime,
         endTime: this.selectedEvent.endTime,
         summary: this.selectedEvent.summary,
         watchRooms: watchRooms,
-      }
-      //ロード中としてアップデート
-      console.log(record)
-
-      this.selectedEvent = null
-      this.pushWatchList(record)
-      await this.setWatchList({
-        subscriber: this.user.email,
-        status: '01_ウォッチ中',
-        eventId: record.eventId,
-        startTime: record.startTime,
-        endTime: record.endTime,
-        summary: record.summary,
-        watchRooms:record.watchRooms,
       })
-      record.status='01_ウォッチ中'
-
+      this.selectedEvent = null
       await this.setTrigger()
     }
   },

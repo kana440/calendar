@@ -57,6 +57,7 @@ const mutations = {
     })
     if(idx === -1) console.log('not found')
     state.roomsEvents[idx].items.push(event)
+    state.roomsEvents[idx].response="has events"
 
     const idx2 = state.calendarEvents.findIndex(query=>{
       return equalDate(query.date, event.startTime)

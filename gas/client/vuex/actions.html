@@ -206,9 +206,11 @@ const actions = {
     await new Promise((resolve,reject)=>setTimeout(()=>resolve(),600))
     for(let room of getters.validRooms){
       await new Promise((resolve,reject)=>setTimeout(()=>resolve(),140))
-      const result = await api.getCalendarEvents({
+      api.getCalendarEvents({
         calendarId: room.calendarId,
         selectedDate: state.selectedDate,
+      }).then(result=>{
+        commit('updateRoomsEvents', result)
       }).catch(()=>{
         commit('updateRoomsEvents', {
           calendarId: room.calendarId,
@@ -217,7 +219,6 @@ const actions = {
           items: [],
         })
       })
-      commit('updateRoomsEvents', result)
     }
   },
 
@@ -268,7 +269,7 @@ const actions = {
     })
   },
 
-  async getWatchList({ commit, state },payload){
+  async getWatchList({ commit, state }){
     // ステータスのみロード中に設定
     commit('updateWatchList', {
       response: 'loading',
@@ -307,23 +308,27 @@ const actions = {
   async setWatchList({state, commit},{
     subscriber, status, eventId, startTime, endTime, summary, watchRooms
   }){
-    const result = await api.setWatchList({
-      subscriber, status, eventId, startTime, endTime, summary, watchRooms
-    })
     commit('pushWatchList', {
-      subscriber, status, eventId, startTime, endTime, summary, watchRooms
+      subscriber, status:'00_ロード中', eventId, startTime, endTime, summary, watchRooms
     })
+    try{
+      const result = await api.setWatchList({
+        subscriber, status, eventId, startTime, endTime, summary, watchRooms
+      })
+      commit('pushWatchList', {
+        subscriber, status, eventId, startTime, endTime, summary, watchRooms
+      })
+    } catch (e) {
+      commit('pushWatchList', {
+        subscriber, status:'00_エラー', eventId, startTime, endTime, summary, watchRooms
+      })
+    }
   },
-
   async updateSelectedDate({ commit, state, dispatch }, payload) {
     commit('updateSelectedDate', payload)
     dispatch('getCalendarEvents'),
     dispatch('getFreeBusy'),
     dispatch('getRoomsEvents')
-  },
-
-  onEventSelected({ commit }, { event }) {
-    commit('selectEvent', { event })
   },
 
   async createEvent({ commit, dispatch, state}, payload){
@@ -338,11 +343,7 @@ const actions = {
     return await api.addGuests(payload)
   },
 
-  async deleteWatch({ commit, dispatch, state}, payload){
-    const result = await api.deleteWatch(payload)
-    commit('pushWatchList',payload)
-//    dispatch('getWatchList')
-  },
+
 
   async log({ commit, dispatch, state}, payload){
     payload.user=state.user.email

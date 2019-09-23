@@ -197,34 +197,17 @@
     },
     methods: {
       ...Vuex.mapActions([
-        'deleteWatch',
+        'setWatchList',
       ]),
       ...Vuex.mapMutations([
         'pushWatchList',
       ]),
       async handleDeleteWatch(){
         this.deleteDialog = false
-
-        const record ={
-          subscriber: this.user.email,
-          status: '00_ロード中',
-          eventId: this.selectedRecord.record.eventId,
-          startTime: this.selectedRecord.record.startTime,
-          endTime: this.selectedRecord.record.endTime,
-          summary: this.selectedRecord.record.summary,
-          watchRooms: this.selectedRecord.record.watchRooms,
-        }
-        //ロード中としてアップデート
-        this.pushWatchList(record)
-
+        const record = this.selectedRecord.record
         this.selectedRecord = null
-        await this.deleteWatch({
-          subscriber: this.user.email,
-          eventId: record.eventId,
-        })
-
-        this.pushWatchList({
-          subscriber: this.user.email,
+        await this.setWatchList({
+          subscriber: record.subscriber,
           status: '09_キャンセル',
           eventId: record.eventId,
           startTime: record.startTime,
