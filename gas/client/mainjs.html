@@ -50,44 +50,6 @@ function getRoomStatus(event,roomCalendarId,selfEmail,startTime,endTime){
   }
 }
 
-function getWrapper(component){
-  if(!vueTestUtils) {
-    console.log('vueTestUtils not found.')
-    return null
-  }
-  const wrapper = vueTestUtils.mount(component,{store, vue})
-
-  const result = {}
-
-  return {
-    wrapper: wrapper,
-    callMethods(value){
-      this.wrapper.vm[value]()
-    },
-    callComputed(value){
-      this.wrapper.vm._computedWatchers[value].getter()
-    }
-  }
-}
-
-function search(vm,item) {
-	if(vm.$options._componentTag === item){
-		return vm
-    } else {
-		if(vm.$children.length === 0){
-			return "no"
-        }
-		for(let i=0; i<vm.$children.length; i++){
-            result = search(vm.$children[i],item)
-			if(result !== "no") {
-				return result
-            }
-        }
-		return "no"
-    }
-}
-
-
 const vue = new Vue({
   store,
   router,
