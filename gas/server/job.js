@@ -74,7 +74,7 @@ function roomCheck() {
       }
 
       //Freebusy一括問い合わせ, 15部屋ずつ
-      const freebusy = {}
+      const freebusy = {calendars:{}}
       const lot=15
 
       for(var i=0; i<record.watchRooms.length; i+=lot){
@@ -89,6 +89,7 @@ function roomCheck() {
       //開いた会議室を確認
       const roomsAvailable = record.watchRooms.filter(function(room) {
         const result = freebusy.calendars[room.calendarId]
+        if(!result) return false
         if(!result.errors && result.busy.length === 0) {
           return true
         } else {
