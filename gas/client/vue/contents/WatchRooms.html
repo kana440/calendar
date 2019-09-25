@@ -470,7 +470,7 @@ const WatchRooms = {
       }).then(result=>{
         this.addEventRoomsEvents({
           calendarId: calendarId,
-          event: event,
+          event: result,
         })
         this.snackbar.text="会議室を追加しました"
         this.snackbar.icon='info'
@@ -481,10 +481,10 @@ const WatchRooms = {
           detail: {
             calendarId: calendarId,
             event: {
-              eventId: event.eventId,
-              startTime: event.startTime.toLocaleString(),
-              endTime: event.endTime.toLocaleString(),
-              summary: event.summary,
+              eventId: result.eventId,
+              startTime: result.startTime.toLocaleString(),
+              endTime: result.endTime.toLocaleString(),
+              summary: result.summary,
             }
           }
         })
