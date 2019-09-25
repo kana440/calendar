@@ -16,8 +16,8 @@
         >
           読込
         </v-btn>
-        </v-col>
-        </v-row>
+      </v-col>
+      </v-row>
     </v-alert>
     </v-container>
 
@@ -98,11 +98,6 @@
         </template>
       </v-data-table>
     </v-dialog>
-    <v-dialog v-model="eventCreateModal">
-        <watch-rooms-event-create
-        >
-      </watch-rooms-event-create>
-    </v-dialog>
     <v-snackbar
       v-model="snackbar.display"
       :timeout="snackbar.timeout"
@@ -123,39 +118,7 @@
 
 </template>
 
-<template id="watch-rooms-event-create">
-  <v-card>
-    <v-text-field
-      v-model="name"
-      label="部屋名"
-    ></v-text-field>
-    <v-text-field
-      v-model="startTime"
-      label="開始"
-    ></v-text-field>
-    <v-text-field
-      v-model="startTime"
-      label="終了"
-    ></v-text-field>
-    <v-text-field
-      v-model="summary"
-      label="予定名"
-    ></v-text-field>
-  </v-card>
-</template>
-
 <script>
-const WatchRoomsEventCreate ={
-  template: '#watch-rooms-event-create',
-  data() {
-    return {
-      name: 'name',
-      startTime: 'xx-xx',
-      endTime: 'xx-xx2',
-      summary: ''
-    }
-  },
-}
 const WatchRooms = {
   template: '#watch-rooms',
   components: {
@@ -165,7 +128,6 @@ const WatchRooms = {
     ...Vuex.mapState([
       'roomsEvents',
       'user',
-      'isLoading',
       'selectedDate',
       'watchList',
     ]),
@@ -175,15 +137,11 @@ const WatchRooms = {
       'calendarEventsSelectedDate',
       'myWatchList',
     ]),
-    step(){
-      if(!this.selectedEvent) return 1
-      return 2
-    },
     tableStep1() {
       // calendarEventsとwatchListと双方に依存、
       // ローディングを判定
       if(!this.calendarEventsSelectedDate){
-        //ロード中
+        // ロード中
         return
       }
       switch(this.calendarEventsSelectedDate.response){
@@ -220,14 +178,6 @@ const WatchRooms = {
           return []
         }
       }
-    },
-    titleStep1(){
-      if(!this.selectedEvent) return '予定を選ぶ'
-      return (
-        '選択:'
-        + this.selectedEvent.time + ' '
-        + this.selectedEvent.summary
-        )
     },
     tableStep2(){
       if(!this.selectedEvent || this.validRooms.length === 0 ) return []
@@ -331,9 +281,7 @@ const WatchRooms = {
   },
   data() {
     return {
-      eventCreateModal: false,
       selected: [],
-      loading: false,
       selectedEvent: null,
       snackbar: {
         display: false,
@@ -349,7 +297,6 @@ const WatchRooms = {
         available: '○',
         loading: 'ロード中・・・',
       },
-
 
       headers: [{
           text: '時間',
@@ -420,13 +367,9 @@ const WatchRooms = {
   },
   methods: {
     ...Vuex.mapMutations([
-      'updateSelectedEvent',
-      'updateInitializing',
       'addEventRoomsEvents',
-      'pushWatchList',
     ]),
     ...Vuex.mapActions([
-      'updateSelectedDate',
       'setWatchList',
       'getWatchList',
       'setTrigger',
@@ -442,10 +385,7 @@ const WatchRooms = {
       }
     },
     selectEvent(value){
-      this.updateSelectedEvent(value.event)
       this.selectedEvent = value
-    },
-    updateSelected(value){
     },
     back() {
       this.selectedEvent = null
@@ -495,7 +435,7 @@ const WatchRooms = {
         this.snackbar.iconColor='red'
         this.snackbar.display=true
       })
-      //選択を削除して前画面に戻る
+      // 選択を削除して前画面に戻る
       this.selectedEvent = null
     },
     async handleSetWatchList() {
