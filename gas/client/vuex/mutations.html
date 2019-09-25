@@ -51,27 +51,28 @@ const mutations = {
     }
   },
   addEventRoomsEvents(state, {calendarId, event}){
-    console.log('eventTime', event.startTime)
+    // roomsEventsをパッチ
     const idx = state.roomsEvents.findIndex(query=>{
       return equalDate(query.date, event.startTime) && query.calendarId === calendarId
     })
     if(idx === -1) console.log('not found')
     state.roomsEvents[idx].items.push(event)
     state.roomsEvents[idx].response="has events"
-
+    
+    // calendarEventsをパッチ
     const idx2 = state.calendarEvents.findIndex(query=>{
       return equalDate(query.date, event.startTime)
     })
     if(idx2 === -1) console.log('not found calendarEvents')
-    const old = state.calendarEvents[idx2].items.find(query=>{
-      query.eventId === event.eventId
+    
+    const oldIndex = state.calendarEvents[idx2].items.findIndex(query=>{
+      return query.eventId === event.eventId
     })
-    if(old) {
-      old = event
-    } else {
+    if(oldIndex === -1) {
       state.calendarEvents[idx2].items.push(event)
+    } else {
+      Vue.set(state.calendarEvents[idx2].items,oldIndex,event)
     }
-
   },
   updateWatchList(state, payload){
     state.watchList = payload
