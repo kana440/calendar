@@ -158,9 +158,6 @@
         'user',
         'watchList',
       ]),
-      ...Vuex.mapGetters([
-//        'myWatchList',
-      ]),
       tableWatchList(){
         return this.watchList.records.filter(record=>{
           if(this.showAllStatus){
@@ -198,9 +195,6 @@
     methods: {
       ...Vuex.mapActions([
         'setWatchList',
-      ]),
-      ...Vuex.mapMutations([
-        'pushWatchList',
       ]),
       async handleDeleteWatch(){
         this.deleteDialog = false
