@@ -6,7 +6,7 @@ const getters = {
     })
   },
   validRooms(state) {
-    if(!state.user.floors) return []
+    if(!state.user || !state.user.floors) return []
     return state.rooms.filter(room => {
       return state.user.floors.indexOf(room.floor) >= 0 &&
       room.validFrom <= state.selectedDate &&

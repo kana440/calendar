@@ -57,6 +57,7 @@ const api = {
 
   async setUserSettings({ email, floors }){
     const result = await this.runGas('setUserSettings',{ email, floors })
+
     return result
   },
 
@@ -150,21 +151,35 @@ const api = {
 
 const actions = {
   async initialize({commit, dispatch, getters}){
-    const [rooms, userSettings] = await Promise.all([
-      api.getRooms(),
-      api.getUserSettings(),
-    ])
-    commit('updateRooms', rooms)
-    commit('updateUserSettings', userSettings)
-    commit('updateInitializing', false)
-    // ユーザ情報がない時・あってもフロア情報が無効のとき、ユーザ設定
-    if(!getters.validRooms.length){
-      commit('updateShowUserSettings', true)
+    try {
+      await Promise.all([
+        dispatch('getRooms'),
+        dispatch('getUserSettings'),
+      ])
+      commit('updateInitializing', false)
+      // ユーザ情報がない時・あってもフロア情報が無効のとき、ユーザ設定
+      if(!getters.validRooms.length){
+        commit('updateShowUserSettings', true)
+      } else {
+        dispatch('getFreeBusy')
+        dispatch('getCalendarEvents')
+        dispatch('getWatchList')
+        dispatch('getRoomsEvents')
+      }
+    } catch(e) {
+      console.log(e)
+      window.alert('エラー:再読み込みします')
+      dispatch('initialize')
     }
-    dispatch('getFreeBusy')
-    dispatch('getCalendarEvents')
-    dispatch('getWatchList')
-    dispatch('getRoomsEvents')
+  },
+
+  async getRooms({commit}){
+    const rooms = await api.getRooms()
+    commit('updateRooms', rooms)
+  },
+  async getUserSettings({commit}){
+    const userSettings = await api.getUserSettings()
+    commit('updateUserSettings', userSettings)
   },
 
   async getCalendarEvents({ commit, state }) {
@@ -307,13 +322,14 @@ const actions = {
   async setUserSettings({ state, commit , dispatch}){
     commit('clearRoomsEvents')
     commit('clearFreeBusy')
-//    commit('clearCalendarEvents')
+    commit('clearCalendarEvents')
     commit('updateShowUserSettings', false)
     commit('updateInitializing', true)
     await api.setUserSettings(state.user)
     dispatch('getFreeBusy')
     dispatch('getRoomsEvents')
-//    dispatch('getCalendarEvents')
+    dispatch('getCalendarEvents'),
+    dispatch('getWatchList'),
     commit('updateInitializing', false)
   },
 
