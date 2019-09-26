@@ -209,6 +209,18 @@ const actions = {
       api.getCalendarEvents({
         calendarId: room.calendarId,
         selectedDate: state.selectedDate,
+      }).catch(()=>{
+        // リトライ処理1回目
+        api.getCalendarEvents({
+          calendarId: room.calendarId,
+          selectedDate: state.selectedDate,
+        })
+      }).catch(()=>{
+        // リトライ処理2回目
+        api.getCalendarEvents({
+          calendarId: room.calendarId,
+          selectedDate: state.selectedDate,
+        })
       }).then(result=>{
         commit('updateRoomsEvents', result)
       }).catch(()=>{
