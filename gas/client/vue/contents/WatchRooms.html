@@ -436,22 +436,23 @@ const WatchRooms = {
       this.selectedEvent = null
     },
     async handleSetWatchList() {
+      const record = this.selectedEvent
       const watchRooms = this.selected.map(room=>{
         return {
           calendarId: room.calendarId,
           name: room.name,
         }
       })
+      this.selectedEvent = null
       await this.setWatchList({
         subscriber: this.user.email,
         status: '01_ウォッチ中',
-        eventId: this.selectedEvent.eventId,
-        startTime: this.selectedEvent.startTime,
-        endTime: this.selectedEvent.endTime,
-        summary: this.selectedEvent.summary,
+        eventId: record.eventId,
+        startTime: record.startTime,
+        endTime: record.endTime,
+        summary: record.summary,
         watchRooms: watchRooms,
       })
-      this.selectedEvent = null
       await this.setTrigger()
     }
   },
