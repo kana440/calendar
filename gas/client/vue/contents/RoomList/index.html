@@ -192,7 +192,6 @@ const RoomList = {
         }]
       }
       this.createEvent(payload).then(event=>{
-        console.log('createEvent', this.createProps.calendarId, event)
         this.addEventRoomsEvents({
           calendarId: this.createProps.calendarId,
           event: event,
