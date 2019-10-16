@@ -11,10 +11,16 @@
   </head>
   <body>
     <div id="vue-app"></div>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuex/dist/vuex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-router/dist/vue-router.min.js"></script>
+  -->
+
+    <?!=include('client/lib/js/vue');?>
+    <?!=include('client/lib/js/vuetify');?>
+    <?!=include('client/lib/js/vuex');?>
+    <?!=include('client/lib/js/vue-router');?>
 
     <?!=include('client/vuex/state');?>
     <?!=include('client/vuex/mutations');?>
