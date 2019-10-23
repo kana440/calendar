@@ -73,7 +73,7 @@
             <v-col cols="3" class="ml-5">
               <v-select cols=2
              v-model="capacity"
-             :items="[0,4,6,8,10,12,'*']"
+             :items="[0,4,6,8,10,12]"
              @change="changeCapacity"
              label="N名以上の会議室を選択"
              ></v-select>
@@ -402,7 +402,7 @@ const WatchRooms = {
     changeCapacity(){
       const update = []
       for(let a of this.tableStep2) {
-        if(this.validRooms.find(room=>(
+        if(this.capacity === 0 || this.validRooms.find(room=>(
           room.calendarId === a.calendarId
           && room.capacity >= this.capacity
           ))
