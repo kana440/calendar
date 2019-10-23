@@ -69,17 +69,27 @@
         @click:row="switchSelect($event)"
       >
         <template #top>
-          <v-row justify="end">
-          <v-btn
+          <v-row>
+            <v-col cols="3" class="ml-5">
+              <v-select cols=2
+             v-model="capacity"
+             :items="[0,4,6,8,10,12,'*']"
+             @change="changeCapacity"
+             label="N名以上の会議室を選択"
+             ></v-select>
+            </v-col>
+            <v-col cols="8">
+          <v-btn align="right"
             class="ma-2"
             @click.stop='back'
           >戻る</v-btn>
-          <v-btn
-            class="ma-2 mr-4"
+          <v-btn align="right"
+            class="ma-2 mr-2"
             color="secondary"
             :disabled="selected.length===0"
             @click.stop='handleSetWatchList'
           >ウォッチ登録</v-btn>
+        </v-col>
           </v-row>
         </template>
         <template #item.status = {value,item}>
@@ -280,6 +290,7 @@ const WatchRooms = {
     return {
       selected: [],
       selectedEvent: null,
+      capacity: 0,
       snackbar: {
         display: false,
         timeout: '5000',
@@ -387,6 +398,19 @@ const WatchRooms = {
     back() {
       this.selectedEvent = null
 
+    },
+    changeCapacity(){
+      const update = []
+      for(let a of this.tableStep2) {
+        if(this.validRooms.find(room=>(
+          room.calendarId === a.calendarId
+          && room.capacity >= this.capacity
+          ))
+        ){
+          update.push(a)
+        }
+      }
+      this.selected = update
     },
     async handleAddGuest(calendarId) {
       //会議室を取得する
